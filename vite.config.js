@@ -15,7 +15,7 @@ export default defineConfig({
     proxy: {
       // Proxy /api requests to your backend
       '/api': {
-        target: 'http://localhost:8000',  // Your Express server
+        target: 'https://backend-sgy8.onrender.com',  // Your Express server
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '/api'),

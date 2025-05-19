@@ -1,6 +1,6 @@
 // src/api/jobApi.js
 import axios from "axios";
-const API = import.meta.env.VITE_API_BASE_URL;
+const API = "https://backend-sgy8.onrender.com/api"; // Adjust this to your backend API URL
 
 // 🔍 Get autocomplete title suggestions
 export const fetchSuggestions = async (query) => {

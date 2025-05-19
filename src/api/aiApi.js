@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8000/api/ai"; // Replace with your backend's base URL if needed
+const API_URL = "https://backend-sgy8.onrender.com/api/ai"; // Replace with your backend's base URL if needed
 
 /**
  * Analyze resume content

@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: 'https://backend-sgy8.onrender.com/api',
 });
 
 // Request interceptor to attach token to every request
