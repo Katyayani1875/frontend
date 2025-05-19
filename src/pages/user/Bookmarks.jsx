@@ -10,7 +10,7 @@ import {
   CalendarDaysIcon, // Changed from CalendarIcon for consistency if you prefer, or keep CalendarIcon
   BuildingIcon, // Added for company
 } from 'lucide-react'; // Import Lucide Icons
-import { Button } from '@/components/ui/button'; // Assuming you're using a UI library
+import { Button } from '@/components/ui/Button'; // Assuming you're using a UI library
 
 const Bookmarks = () => {
   const [bookmarkedJobs, setBookmarkedJobs] = useState([]);
