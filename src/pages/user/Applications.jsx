@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import { Trash2, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Trash2, Clock, CheckCircle2, AlertCircle, Building2 } from 'lucide-react';
 import axiosInstance from '../../utils/axiosInstance';
 import Loader from '../../components/shared/Loader';
 import EmptyState from '../../components/shared/EmptyState';
@@ -14,8 +14,8 @@ const Applications = () => {
   const fetchApplications = async () => {
     setLoading(true);
     try {
-      const res = await axiosInstance.get('/applications');
-      setApplications(res.data);
+      const { data } = await axiosInstance.get('/applications');
+      setApplications(data); // Directly use the array response
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to load applications');
       console.error('Fetch error:', error);
@@ -150,13 +150,13 @@ const Applications = () => {
                         />
                       ) : (
                         <div className="h-12 w-12 bg-gray-100 rounded-md flex items-center justify-center">
-                          <Building2Icon className="h-6 w-6 text-gray-400" />
+                          <Building2 className="h-6 w-6 text-gray-400" />
                         </div>
                       )}
                     </div>
                     <div>
                       <h2 className="text-lg font-semibold text-gray-900 hover:text-blue-600">
-                        {app.job?.title}
+                        {app.job?.title || 'Job title not specified'}
                       </h2>
                       <p className="text-gray-600">
                         {app.job?.company?.name || 'Company not specified'} • {app.job?.location || 'Location not specified'}
