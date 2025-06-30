@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { BookmarkIcon, BriefcaseIcon, MapPinIcon, ClockIcon, DollarSignIcon } from "lucide-react";
 import toast from "react-hot-toast";
 import JobService from "../../api/jobApi.js";
-// import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import LoadingSpinner from "../../components/ui/LoadingSpinner.jsx";
 
 const JobDetail = () => {
   const { id } = useParams();
