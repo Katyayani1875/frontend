@@ -1,15 +1,10 @@
-// src/pages/bookmark/Bookmarks.jsx (or wherever the file is)
-
+// src/pages/bookmark/Bookmarks.jsx
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { BookmarkMinusIcon, BuildingIcon, MapPinIcon, CalendarDaysIcon } from 'lucide-react';
+import { BookmarkMinusIcon, Building2Icon, MapPinIcon } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-
-// --- START OF THE DEFINITIVE FIX ---
-// Import the single, correct JobService. All other axios/api imports are gone.
 import JobService from '../../api/jobApi.js';
-// --- END OF THE DEFINITIVE FIX ---
 
 const Bookmarks = () => {
   const [bookmarkedJobs, setBookmarkedJobs] = useState([]);
@@ -19,9 +14,13 @@ const Bookmarks = () => {
     const fetchBookmarks = async () => {
       setIsLoading(true);
       try {
-        // Use the correct service method to fetch bookmarks
-        const jobs = await JobService.bookmarks.fetchAll();
-        setBookmarkedJobs(jobs);
+        const bookmarks = await JobService.bookmarks.fetchAll();
+        // Transform the data to match what your UI expects
+        const transformedBookmarks = bookmarks.map(bookmark => ({
+          ...bookmark.job,          // Spread all job properties
+          bookmarkId: bookmark._id  // Keep the bookmark ID for removal
+        }));
+        setBookmarkedJobs(transformedBookmarks);
       } catch (err) {
         console.error('Error fetching bookmarks:', err);
         toast.error('Failed to load your bookmarked jobs.');
@@ -32,13 +31,14 @@ const Bookmarks = () => {
     fetchBookmarks();
   }, []);
 
-  const handleRemove = async (jobIdToRemove) => {
+  const handleRemove = async (jobId) => {
     try {
-      // Use the correct service method to remove a bookmark
-      await JobService.bookmarks.remove(jobIdToRemove);
-      setBookmarkedJobs((prevJobs) =>
-        prevJobs.filter((job) => job._id !== jobIdToRemove)
-      );
+      // Find the bookmark to get its ID
+      const bookmarkToRemove = bookmarkedJobs.find(job => job._id === jobId);
+      if (!bookmarkToRemove) return;
+      
+      await JobService.bookmarks.remove(bookmarkToRemove.bookmarkId || jobId);
+      setBookmarkedJobs(prev => prev.filter(job => job._id !== jobId));
       toast.success('Removed from bookmarks.');
     } catch (err) {
       console.error('Error removing bookmark:', err);
@@ -75,7 +75,7 @@ const Bookmarks = () => {
                 <div>
                   <h2 className="text-xl font-semibold text-blue-600 truncate">{job.title}</h2>
                   <div className="text-sm text-gray-700 mt-2 flex items-center gap-2">
-                    <BuildingIcon size={16} />
+                    <Building2Icon size={16} />
                     <span>{job.company?.name || "A Company"}</span>
                   </div>
                   <div className="text-sm text-gray-600 mt-1 flex items-center gap-2">
