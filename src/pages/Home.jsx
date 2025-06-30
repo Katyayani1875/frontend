@@ -1,41 +1,51 @@
-// src/pages/Home.jsx
+// frontend/job-ui/src/pages/Home.jsx
 import React, { useState, useEffect } from "react";
 import Marquee from "react-fast-marquee";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Bookmark, BookmarkCheck } from "lucide-react";
 import CountUp from "react-countup";
 import { toast } from "react-hot-toast";
-import { Bookmark, BookmarkCheck } from "lucide-react";
 
 // Components
 import JobTitleSearch from "@/components/JobTitleSearch";
 import HeroCarousel from "@/components/HeroCarousel";
 import HowItWorks from "@/components/HowItworks";
 
-// API Services
-import { fetchJobs, bookmarkService } from "@/api/jobApi";
+// Services
+import JobService from "@/api/jobApi";
 
 export default function Home() {
   const [jobTitle, setJobTitle] = useState("");
   const [category, setCategory] = useState("");
   const [jobs, setJobs] = useState([]);
   const [debouncedJobTitle, setDebouncedJobTitle] = useState(jobTitle);
-  const [playMarquee, setPlayMarquee] = useState(true);
   const [bookmarks, setBookmarks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showMarquee, setShowMarquee] = useState(true);
+
+  // Constants
+  const popularCategories = [
+    { title: "IT", icon: "💻", slug: "it" },
+    { title: "Finance", icon: "💰", slug: "finance" },
+    { title: "Design", icon: "🎨", slug: "design" },
+    { title: "Marketing", icon: "📣", slug: "marketing" },
+  ];
+
+  const companyLogos = [
+    "google", "microsoft", "tata", "amazon", 
+    "wipro", "flipkart", "Loreal", "deloitte", "myntra"
+  ];
 
   // Fetch bookmarks on component mount
   useEffect(() => {
-    const getBookmarks = async () => {
+    const fetchBookmarks = async () => {
       try {
-        const res = await bookmarkService.fetchAll();
-        if (res?.jobs) {
-          setBookmarks(res.jobs.map((b) => b._id));
-        }
+        const bookmarkedJobs = await JobService.bookmarks.fetchAll();
+        setBookmarks(bookmarkedJobs.map(job => job._id));
       } catch (error) {
-        console.error("Error fetching bookmarks:", error);
+        console.log("Bookmarks not loaded - user may not be authenticated");
       }
     };
-    getBookmarks();
+    fetchBookmarks();
   }, []);
 
   // Debounce job title search
@@ -48,72 +58,53 @@ export default function Home() {
 
   // Fetch jobs when filters change
   useEffect(() => {
-    const search = async () => {
-      if (debouncedJobTitle || category) {
-        setIsLoading(true);
-        try {
-          const results = await fetchJobs({
-            title: debouncedJobTitle,
-            category,
-            page: 1,
-            limit: 10
-          });
-
-          if (results?.jobs) {
-            setJobs(results.jobs);
-          } else {
-            setJobs([]);
-          }
-        } catch (error) {
-          console.error("Error fetching jobs:", error);
-          toast.error("Failed to load jobs");
-          setJobs([]);
-        } finally {
-          setIsLoading(false);
-        }
-      } else {
+    const fetchJobsData = async () => {
+      if (!debouncedJobTitle && !category) {
         setJobs([]);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const { jobs } = await JobService.fetchJobs({
+          title: debouncedJobTitle,
+          category,
+          page: 1,
+          limit: 10
+        });
+        setJobs(jobs);
+      } catch (error) {
+        toast.error("Failed to load jobs");
+        setJobs([]);
+      } finally {
+        setIsLoading(false);
       }
     };
-    search();
+
+    fetchJobsData();
   }, [debouncedJobTitle, category]);
 
-  // Stop marquee after 10 seconds
+  // Hide marquee after 10 seconds
   useEffect(() => {
-    const timer = setTimeout(() => setPlayMarquee(false), 10000);
+    const timer = setTimeout(() => setShowMarquee(false), 10000);
     return () => clearTimeout(timer);
   }, []);
 
   const toggleBookmark = async (jobId) => {
     try {
-      const isBookmarked = bookmarks.includes(jobId);
-      
-      if (isBookmarked) {
-        await bookmarkService.remove(jobId);
+      if (bookmarks.includes(jobId)) {
+        await JobService.bookmarks.remove(jobId);
         setBookmarks(prev => prev.filter(id => id !== jobId));
         toast.success("Bookmark removed");
       } else {
-        await bookmarkService.add(jobId);
+        await JobService.bookmarks.add(jobId);
         setBookmarks(prev => [...prev, jobId]);
         toast.success("Bookmark added");
       }
     } catch (error) {
-      console.error("Bookmark error:", error);
-      toast.error("Failed to update bookmark");
+      toast.error(error.response?.data?.message || "Please login to bookmark jobs");
     }
   };
-
-  const popularCategories = [
-    { title: "IT", icon: "💻", slug: "it" },
-    { title: "Finance", icon: "💰", slug: "finance" },
-    { title: "Design", icon: "🎨", slug: "design" },
-    { title: "Marketing", icon: "📣", slug: "marketing" },
-  ];
-
-  const companyLogos = [
-    "google", "microsoft", "tata", "amazon", 
-    "wipro", "flipkart", "Loreal", "deloitte", "myntra"
-  ];
 
   return (
     <section className="relative bg-gradient-to-br from-purple-50 to-indigo-100 dark:from-[#0C1A2B] dark:to-[#0C1A2B] py-16 px-4 md:px-20 transition-colors duration-500">
@@ -194,7 +185,7 @@ export default function Home() {
         <h2 className="text-gray-600 dark:text-gray-400 text-sm font-medium">
           Trusted by top companies
         </h2>
-        {playMarquee && (
+        {showMarquee && (
           <Marquee gradient={false} speed={40} pauseOnHover className="overflow-hidden">
             <div className="flex gap-10 items-center">
               {companyLogos.map((name) => (
@@ -251,7 +242,7 @@ export default function Home() {
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
             Job Results ({jobs.length})
           </h2>
-          <ul className="space-y-4">
+          <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {jobs.map((job) => (
               <li
                 key={job._id}
