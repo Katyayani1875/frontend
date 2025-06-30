@@ -10,12 +10,11 @@ import axiosInstance from '../utils/axiosInstance';
 // Get autocomplete job title suggestions
 export const fetchSuggestions = async (query) => {
   if (!query?.trim()) return [];
-
   try {
     const { data } = await axiosInstance.get('/jobs/search/suggestions', {
       params: { query: query.trim() },
     });
-    return data || [];
+    return data?.suggestions || []; // Ensure you return the suggestions array
   } catch (error) {
     console.error('Error fetching suggestions:', error);
     return [];
@@ -32,7 +31,6 @@ export const fetchJobs = async (filters = {}) => {
       page: filters.page || 1,
       limit: filters.limit || 10,
     };
-
     const { data } = await axiosInstance.get('/jobs', { params });
     return {
       jobs: data.jobs || [],
@@ -49,16 +47,16 @@ export const fetchJobs = async (filters = {}) => {
 export const fetchFeaturedJobs = async () => {
   try {
     const { data } = await axiosInstance.get('/jobs/featured');
-    return data || [];
+    return data?.jobs || []; // Ensure you return the jobs array
   } catch (error) {
     console.error('Error fetching featured jobs:', error);
     return [];
   }
 };
 
-// Bookmark operations
+// --- THIS IS THE NEW, ORGANIZED BOOKMARK SERVICE ---
 export const bookmarkService = {
-  // Get all bookmarked jobs
+  // Get all bookmarked jobs for the logged-in user
   fetchAll: async () => {
     try {
       const { data } = await axiosInstance.get('/bookmarks');
@@ -69,37 +67,26 @@ export const bookmarkService = {
     }
   },
 
-  // Add job to bookmarks
+  // Add a job to bookmarks
   add: async (jobId) => {
     try {
       const { data } = await axiosInstance.post('/bookmarks', { jobId });
       return data;
     } catch (error) {
       console.error('Error adding bookmark:', error);
-      throw error;
+      throw error; // Re-throw the error so the component can handle it (e.g., show a toast)
     }
   },
 
-  // Remove job from bookmarks
+  // Remove a job from bookmarks
   remove: async (jobId) => {
     try {
       await axiosInstance.delete(`/bookmarks/${jobId}`);
     } catch (error) {
       console.error('Error removing bookmark:', error);
-      throw error;
+      throw error; // Re-throw the error
     }
   },
-  
-  // Check if job is bookmarked (new addition)
-  check: async (jobId) => {
-    try {
-      const { data } = await axiosInstance.get(`/bookmarks/check/${jobId}`);
-      return data?.isBookmarked || false;
-    } catch (error) {
-      console.error('Error checking bookmark status:', error);
-      return false;
-    }
-  }
 };
 
 // Additional job-related API calls can be added below
