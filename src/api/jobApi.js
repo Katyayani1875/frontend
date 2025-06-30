@@ -158,16 +158,18 @@ const JobService = {
   // Application Operations
   // =====================
   
-  applications: {
+applications: {
     /**
      * Apply to a job
      * @param {String} jobId - Job ID to apply to
      * @param {Object} applicationData - Application details
-     * @returns {Promise<Object>} - Application result
      */
     apply: async (jobId, applicationData) => {
       try {
-        const { data } = await axiosInstance.post(`/jobs/${jobId}/apply`, applicationData);
+        // --- START OF THE DEFINITIVE FIX ---
+        // The URL must match the backend route: POST /api/applications/:jobId
+        const { data } = await axiosInstance.post(`/applications/${jobId}`, applicationData);
+        // --- END OF THE DEFINITIVE FIX ---
         return data;
       } catch (error) {
         console.error('[JobService] Error applying to job:', error);
@@ -177,7 +179,6 @@ const JobService = {
 
     /**
      * Get user's applications
-     * @returns {Promise<Array>} - Array of applications
      */
     getMyApplications: async () => {
       try {
@@ -190,87 +191,4 @@ const JobService = {
     }
   }
 };
-
 export default JobService;
-
-// Additional job-related API calls can be added below
-// // src/api/jobApi.js
-// import axios from "axios";
-// const API = "https://backend-sgy8.onrender.com/api"; 
-
-// // Get autocomplete title suggestions
-// export const fetchSuggestions = async (query) => {
-//   if (!query) return []; 
-
-//   try {
-//     const response = await axios.get(`${API}/jobs/suggestions`, {
-//       params: { query },
-//       withCredentials: true,
-//     });
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error fetching suggestions:", error);
-//     return [];
-//   }
-// };
-
-// // Fetch jobs based on filters (title, location, category)
-// export const fetchJobs = async ({ title, location, category }) => {
-//   try {
-//     const response = await axios.get(`${API}/jobs`, {
-//       params: { search: title, category },
-//       withCredentials: true,
-//     });
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error fetching jobs:", error);
-//     return [];
-//   }
-// };
-
-
-// // Fetch user's bookmarked jobs
-// export const fetchBookmarks = async () => {
-//   try {
-//     const token = localStorage.getItem("token"); // or retrieve from your auth context
-//     const res = await axios.get(`${API}/bookmarks`, {
-//       withCredentials: true,
-//       headers: { Authorization: `Bearer ${token}` }
-//     });
-//     return res.data;
-//   } catch (err) {
-//     console.error("Error fetching bookmarks:", err);
-//     return [];
-//   }
-// };
-
-// // Add bookmark
-// export const addBookmark = async (jobId) => {
-//   try {
-//     const token = localStorage.getItem("token"); //new changes
-//     const res = await axios.post(
-//       `${API}/bookmarks`,
-//       { jobId },
-//       {
-//         withCredentials: true,
-//         headers: {
-//           Authorization: `Bearer ${token}`,
-//         },
-//       }
-//     );
-//     return res.data;
-//   } catch (err) {
-//     console.error("Error adding bookmark:", err);
-//     throw err;
-//   }
-// };
-
-// // Remove bookmark
-// export const removeBookmark = async (jobId) => {
-//   try {
-//     await axios.delete(`${API}/bookmarks/${jobId}`, { withCredentials: true });
-//   } catch (err) {
-//     console.error("Error removing bookmark:", err);
-//     throw err;
-//   }
-// };
