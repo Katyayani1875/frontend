@@ -162,7 +162,7 @@ const JobDetail = () => {
         </div>
 
         {/* Job Meta */}
-        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+          <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400 flex-wrap">
           <div className="flex items-center gap-1">
             <MapPinIcon className="w-4 h-4" />
             <span>{job.location || "Remote"}</span>
@@ -171,16 +171,11 @@ const JobDetail = () => {
             <BriefcaseIcon className="w-4 h-4" />
             <span>{job.employmentType || "Full-time"}</span>
           </div>
-          {job.salary && (
+          {/* Check if salary exists and has a currency property before rendering */}
+          {job.salary && job.salary.currency && (
             <div className="flex items-center gap-1">
               <DollarSignIcon className="w-4 h-4" />
-              <span>{job.salary}</span>
-            </div>
-          )}
-          {job.postedAt && (
-            <div className="flex items-center gap-1">
-              <ClockIcon className="w-4 h-4" />
-              <span>{new Date(job.postedAt).toLocaleDateString()}</span>
+              <span>Salary in {job.salary.currency}</span>
             </div>
           )}
         </div>
