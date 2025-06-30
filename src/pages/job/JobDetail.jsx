@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { BookmarkIcon, BriefcaseIcon, MapPinIcon, ClockIcon, DollarSignIcon } from "lucide-react";
 import toast from "react-hot-toast";
-import JobService from "@/services/jobService";
+import JobService from "../../api/jobApi";
 import ApplicationService from "@/services/applicationService";
 import BookmarkService from "@/services/bookmarkService";
 import { useAuth } from "@/hooks/useAuth";
