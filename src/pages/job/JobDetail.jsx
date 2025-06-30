@@ -4,19 +4,24 @@ import { Button } from "@/components/ui/Button";
 import { BookmarkIcon, BriefcaseIcon, MapPinIcon, ClockIcon, DollarSignIcon } from "lucide-react";
 import toast from "react-hot-toast";
 import JobService from "../../api/jobApi.js";
-import { useAuth } from "@/hooks/useAuth";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 const JobDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
   const [bookmarking, setBookmarking] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+  }, []);
 
   useEffect(() => {
     const fetchJobData = async () => {
@@ -27,15 +32,17 @@ const JobDetail = () => {
 
       try {
         setLoading(true);
-        const [jobData, bookmarksData, applicationsData] = await Promise.all([
-          JobService.getJobDetails(id),
-          user ? JobService.getUserBookmarks() : Promise.resolve([]),
-          user ? JobService.getUserApplications() : Promise.resolve([])
-        ]);
+        const jobData = await JobService.fetchJobDetails(id);
+        setJob(jobData.job);
 
-        setJob(jobData);
-        setIsBookmarked(bookmarksData.some(b => b.jobId === id));
-        setHasApplied(applicationsData.some(a => a.jobId === id));
+        if (isLoggedIn) {
+          const [bookmarksData, applicationsData] = await Promise.all([
+            JobService.bookmarks.fetchAll(),
+            JobService.applications.getMyApplications()
+          ]);
+          setIsBookmarked(bookmarksData.some(b => b._id === id));
+          setHasApplied(applicationsData.some(a => a.job === id));
+        }
       } catch (error) {
         console.error("Failed to fetch job data:", error);
         toast.error("Failed to load job details");
@@ -46,17 +53,17 @@ const JobDetail = () => {
     };
 
     fetchJobData();
-  }, [id, navigate, user]);
+  }, [id, navigate, isLoggedIn]);
 
   const handleApply = async () => {
-    if (!user) {
+    if (!isLoggedIn) {
       navigate("/login", { state: { from: `/jobs/${id}` } });
       return;
     }
 
     try {
       setApplying(true);
-      await JobService.applyForJob(id);
+      await JobService.applications.apply(id, {});
       setHasApplied(true);
       toast.success("Application submitted successfully!");
     } catch (error) {
@@ -68,7 +75,7 @@ const JobDetail = () => {
   };
 
   const handleBookmark = async () => {
-    if (!user) {
+    if (!isLoggedIn) {
       navigate("/login", { state: { from: `/jobs/${id}` } });
       return;
     }
@@ -76,11 +83,11 @@ const JobDetail = () => {
     try {
       setBookmarking(true);
       if (isBookmarked) {
-        await JobService.removeBookmark(id);
+        await JobService.bookmarks.remove(id);
         setIsBookmarked(false);
         toast.success("Bookmark removed");
       } else {
-        await JobService.addBookmark(id);
+        await JobService.bookmarks.add(id);
         setIsBookmarked(true);
         toast.success("Job bookmarked!");
       }
