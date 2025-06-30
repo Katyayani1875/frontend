@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/Input";
 import { BriefcaseIcon, MapPinIcon, SearchIcon } from "lucide-react";
 import { motion } from "framer-motion";
-import axiosInstance from "../utils/axiosInstance";
+import axiosInstance from "../../utils/axiosInstance";
 
 const categoryFilters = [
   { name: "Software Development", icon: "💻" },
