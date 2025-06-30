@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/Input";
 import { BriefcaseIcon, MapPinIcon, SearchIcon } from "lucide-react";
-import axios from "axios";
 import { motion } from "framer-motion";
+import axiosInstance from "../utils/axiosInstance";
 
 const categoryFilters = [
   { name: "Software Development", icon: "💻" },
@@ -16,7 +16,7 @@ const categoryFilters = [
 const Jobs = () => {
   const [jobs, setJobs] = useState([]);
   const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -27,12 +27,13 @@ const Jobs = () => {
     setError("");
     try {
       const params = { page, query };
-      const res = await axios.get("/api/jobs", { params });
-      setJobs(res.data.jobs);
-      setTotalPages(res.data.totalPages);
+      const res = await axiosInstance.get("/jobs", { params });
+      setJobs(res.data.jobs || []);
+      setTotalPages(res.data.totalPages || 1);
     } catch (error) {
       setError("Error fetching jobs, please try again later.");
       console.error("Error fetching jobs:", error);
+      setJobs([]);
     } finally {
       setLoading(false);
     }
@@ -44,18 +45,16 @@ const Jobs = () => {
 
   const handleSearch = () => {
     setPage(1);
-    fetchJobs();
   };
 
   const handleCategoryClick = (category) => {
     setQuery(category);
     setPage(1);
     setActiveCategory(category);
-    fetchJobs();
   };
 
   return (
-    <div className="bg-gradient-to-br from-purple-50 to-indigo-100 py-12">
+    <div className="bg-gradient-to-br from-purple-50 to-indigo-100 py-12 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Explore Job Opportunities</h1>
@@ -71,6 +70,7 @@ const Jobs = () => {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="pr-10 rounded-md"
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               />
               <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
                 <SearchIcon className="w-5 h-5 text-gray-400" />
@@ -111,30 +111,28 @@ const Jobs = () => {
           </div>
         )}
 
-  
-{/* Recommended Jobs Section */}
-{!loading && jobs.length > 0 && (
-  <div className="mb-8 text-center">
-    <h2 className="text-2xl font-bold text-gray-800 inline-flex items-center gap-2">
-      Recommended Jobs
-      <span className="relative inline-block">
-        <span className="  text-gray-800 text-2xl font-semibold border border-yellow-700 rounded-full px-4 py-1 animate-glow shadow-sm">
-  FOR YOU
-</span>
-
-      </span>
-    </h2>
-    <p className="text-sm text-gray-500 mt-2">
-      Looking for the best? Here are the top-rated jobs by our community.
-    </p>
-  </div>
-)}
+        {/* Recommended Jobs Section */}
+        {!loading && jobs.length > 0 && (
+          <div className="mb-8 text-center">
+            <h2 className="text-2xl font-bold text-gray-800 inline-flex items-center gap-2">
+              Recommended Jobs
+              <span className="relative inline-block">
+                <span className="text-gray-800 text-2xl font-semibold border border-yellow-700 rounded-full px-4 py-1 animate-glow shadow-sm">
+                  FOR YOU
+                </span>
+              </span>
+            </h2>
+            <p className="text-sm text-gray-500 mt-2">
+              Looking for the best? Here are the top-rated jobs by our community.
+            </p>
+          </div>
+        )}
 
         {/* Job Listings - Grid Layout */}
         {!loading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {jobs.length === 0 ? (
-              <p className="text-center text-gray-600">No jobs found matching your criteria.</p>
+              <p className="col-span-full text-center text-gray-600">No jobs found matching your criteria.</p>
             ) : (
               jobs.map((job) => (
                 <motion.div
@@ -145,7 +143,7 @@ const Jobs = () => {
                 >
                   <div className="p-4">
                     <h2 className="text-lg font-semibold text-indigo-700 line-clamp-2 mb-2">{job.title}</h2>
-                    <p className="text-gray-600 text-sm mb-2">{job.companyName}</p>
+                    <p className="text-gray-600 text-sm mb-2">{job.company?.name || job.companyName || "A Reputable Company"}</p>
                     <div className="flex items-center text-gray-500 text-xs mb-1">
                       <MapPinIcon className="w-4 h-4 mr-1" />
                       <span>{job.location || "Remote"}</span>
