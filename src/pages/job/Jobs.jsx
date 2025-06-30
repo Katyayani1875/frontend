@@ -1,198 +1,160 @@
-import { useEffect, useState } from "react";
+// src/pages/job/Jobs.jsx
+
+import React, { useEffect, useState, useCallback, memo } from "react";
 import { Link } from "react-router-dom";
-import { Input } from "@/components/ui/Input";
-import { BriefcaseIcon, MapPinIcon, SearchIcon } from "lucide-react";
-import { motion } from "framer-motion";
+import { BriefcaseIcon, MapPinIcon, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import axiosInstance from "../../utils/axiosInstance";
 
-const categoryFilters = [
-  { name: "Software Development", icon: "💻" },
-  { name: "Data Science", icon: "📊" },
-  { name: "Graphic Design", icon: "🎨" },
-  { name: "Marketing", icon: "📢" },
-  { name: "Finance", icon: "💰" },
-];
-
-const Jobs = () => {
-  const [jobs, setJobs] = useState([]);
-  const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [activeCategory, setActiveCategory] = useState(null);
-
-  const fetchJobs = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const params = { page, query };
-      const res = await axiosInstance.get("/jobs", { params });
-      setJobs(res.data.jobs || []);
-      setTotalPages(res.data.totalPages || 1);
-    } catch (error) {
-      setError("Error fetching jobs, please try again later.");
-      console.error("Error fetching jobs:", error);
-      setJobs([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchJobs();
-  }, [query, page]);
-
-  const handleSearch = () => {
-    setPage(1);
-  };
-
-  const handleCategoryClick = (category) => {
-    setQuery(category);
-    setPage(1);
-    setActiveCategory(category);
+// A performant, memoized Job Card component
+const JobCard = memo(({ job, index }) => {
+  const cardVariants = {
+    hidden: { opacity: 0, y: 50, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.5,
+        ease: [0.6, -0.05, 0.01, 0.99], 
+        delay: index * 0.07, 
+      },
+    },
   };
 
   return (
-    <div className="bg-gradient-to-br from-purple-50 to-indigo-100 py-12 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Explore Job Opportunities</h1>
-          <p className="mt-2 text-lg text-gray-500">Find your next great opportunity.</p>
+    <motion.div
+      variants={cardVariants}
+      initial="hidden"
+      animate="visible"
+      whileHover={{ y: -5, boxShadow: "0px 20px 25px -5px rgba(0, 0,0, 0.1), 0px 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
+      className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-lg border border-white/20 dark:border-gray-700/50 rounded-2xl shadow-lg flex flex-col overflow-hidden"
+    >
+      <div className="p-6 flex-grow">
+        <p className="text-sm text-indigo-600 dark:text-indigo-400 font-semibold mb-1">
+          {job.company?.name || "A Reputable Company"}
+        </p>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white line-clamp-2 mb-3 h-14">
+          {job.title}
+        </h2>
+        <div className="flex items-center text-gray-500 dark:text-gray-400 text-sm">
+          <MapPinIcon className="w-4 h-4 mr-2 shrink-0" />
+          <span>{job.location || "Remote"}</span>
         </div>
-
-        {/* Search and Filters */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="relative flex-grow">
-              <Input
-                placeholder="Search by title, company, keywords..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="pr-10 rounded-md"
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              />
-              <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                <SearchIcon className="w-5 h-5 text-gray-400" />
-              </div>
-            </div>
-            <button
-              onClick={handleSearch}
-              className="bg-indigo-600 text-white rounded-md py-2 px-6 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200"
-            >
-              Search
-            </button>
-          </div>
-
-          {/* Category Filters */}
-          <div className="flex flex-wrap justify-start gap-2 mt-4">
-            {categoryFilters.map((cat, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleCategoryClick(cat.name)}
-                className={`inline-flex items-center rounded-md px-3 py-1 text-sm font-medium ${
-                  activeCategory === cat.name ? "bg-indigo-500 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                } focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200`}
-              >
-                <span className="mr-2">{cat.icon}</span>
-                {cat.name}
-              </button>
-            ))}
-          </div>
+        <div className="flex items-center text-gray-500 dark:text-gray-400 text-sm mt-1">
+          <BriefcaseIcon className="w-4 h-4 mr-2 shrink-0" />
+          <span>{job.employmentType || "Full-time"}</span>
         </div>
+      </div>
+      <div className="bg-gray-50 dark:bg-gray-800/30 px-6 py-4 border-t border-gray-100 dark:border-gray-700">
+        <Link
+          to={`/jobs/${job._id}`}
+          className="group text-sm font-semibold text-indigo-600 dark:text-indigo-400 inline-flex items-center gap-2"
+        >
+          View Details
+          <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+        </Link>
+      </div>
+    </motion.div>
+  );
+});
 
-        {/* Error Message */}
-        {error && <div className="text-center text-red-500 mb-6">{error}</div>}
+// A Skeleton Loader for a professional loading state
+const SkeletonCard = () => (
+  <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-lg border border-white/20 dark:border-gray-700/50 rounded-2xl shadow-lg p-6 animate-pulse">
+    <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-1/3 mb-3"></div>
+    <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+    <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
+    <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-1/2"></div>
+  </div>
+);
 
-        {/* Loading State */}
-        {loading && (
-          <div className="flex justify-center mb-10">
-            <div className="w-10 h-10 border-4 border-t-4 border-indigo-600 rounded-full animate-spin"></div>
-          </div>
-        )}
+const Jobs = () => {
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-        {/* Recommended Jobs Section */}
-        {!loading && jobs.length > 0 && (
-          <div className="mb-8 text-center">
-            <h2 className="text-2xl font-bold text-gray-800 inline-flex items-center gap-2">
-              Recommended Jobs
-              <span className="relative inline-block">
-                <span className="text-gray-800 text-2xl font-semibold border border-yellow-700 rounded-full px-4 py-1 animate-glow shadow-sm">
-                  FOR YOU
-                </span>
-              </span>
-            </h2>
-            <p className="text-sm text-gray-500 mt-2">
-              Looking for the best? Here are the top-rated jobs by our community.
-            </p>
-          </div>
-        )}
+  const fetchJobs = useCallback(async (pageNum) => {
+    setLoading(true);
+    try {
+      const res = await axiosInstance.get("/jobs", { params: { page: pageNum } });
+      setJobs(res.data.jobs || []);
+      setTotalPages(res.data.totalPages || 1);
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+      // Optionally, show a toast notification here
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-        {/* Job Listings - Grid Layout */}
-        {!loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {jobs.length === 0 ? (
-              <p className="col-span-full text-center text-gray-600">No jobs found matching your criteria.</p>
-            ) : (
-              jobs.map((job) => (
-                <motion.div
-                  key={job._id}
-                  className="bg-white rounded-md shadow-md hover:shadow-lg transition duration-200 flex flex-col justify-between"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="p-4">
-                    <h2 className="text-lg font-semibold text-indigo-700 line-clamp-2 mb-2">{job.title}</h2>
-                    <p className="text-gray-600 text-sm mb-2">{job.company?.name || job.companyName || "A Reputable Company"}</p>
-                    <div className="flex items-center text-gray-500 text-xs mb-1">
-                      <MapPinIcon className="w-4 h-4 mr-1" />
-                      <span>{job.location || "Remote"}</span>
-                    </div>
-                    <div className="flex items-center text-gray-500 text-xs mb-2">
-                      <BriefcaseIcon className="w-4 h-4 mr-1" />
-                      <span>{job.type || "Full-time"}</span>
-                    </div>
-                    <p className="text-gray-700 text-sm line-clamp-2">{job.description}</p>
-                  </div>
-                  <div className="border-t border-gray-200 p-4">
-                    <Link
-                      to={`/jobs/${job._id}`}
-                      className="block w-full text-center bg-indigo-500 text-white rounded-md py-2 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-200 text-sm font-medium"
-                    >
-                      View Details
-                    </Link>
-                  </div>
-                </motion.div>
+  useEffect(() => {
+    fetchJobs(page);
+  }, [page, fetchJobs]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage > 0 && newPage <= totalPages) {
+      setPage(newPage);
+    }
+  };
+
+  return (
+    <div className="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <motion.div 
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
+            Explore Job Opportunities
+          </h1>
+          <p className="mt-4 text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            Discover your next career move with our curated list of opportunities from top companies.
+          </p>
+        </motion.div>
+        
+        <AnimatePresence>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {loading ? (
+              Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
+            ) : jobs.length > 0 ? (
+              jobs.map((job, index) => (
+                <JobCard key={job._id} job={job} index={index} />
               ))
+            ) : (
+              <p className="col-span-full text-center text-gray-500">No jobs found.</p>
             )}
           </div>
-        )}
+        </AnimatePresence>
 
-        {/* Pagination */}
-        {totalPages > 1 && !loading && (
-          <div className="flex justify-center mt-8">
-            <button
-              onClick={() => setPage(page - 1)}
+        {!loading && totalPages > 1 && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="flex justify-center items-center mt-12 space-x-4"
+          >
+            <Button
+              onClick={() => handlePageChange(page - 1)}
               disabled={page === 1}
-              className={`px-3 py-2 rounded-md ${
-                page === 1 ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-indigo-500 text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-200"
-              } mr-2`}
+              variant="outline"
             >
               Previous
-            </button>
-            <span className="text-gray-700">
+            </Button>
+            <span className="font-medium text-gray-700 dark:text-gray-300">
               Page {page} of {totalPages}
             </span>
-            <button
-              onClick={() => setPage(page + 1)}
+            <Button
+              onClick={() => handlePageChange(page + 1)}
               disabled={page === totalPages}
-              className={`px-3 py-2 rounded-md ${
-                page === totalPages ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-indigo-500 text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-200"
-              } ml-2`}
+              variant="outline"
             >
               Next
-            </button>
-          </div>
+            </Button>
+          </motion.div>
         )}
       </div>
     </div>
