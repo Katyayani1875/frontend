@@ -1,14 +1,14 @@
+// src/pages/auth/Login.jsx
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
-import api from '../../utils/axios';
-import { useAuth } from '../../context/AuthContext'; 
+import axiosInstance from '../../utils/axiosInstance';
+import { useAuth } from '../../context/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth(); 
-
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,24 +22,24 @@ const Login = () => {
 
     setLoading(true);
     try {
-      const { data } = await api.post('/users/login', { email, password });
+      const { data } = await axiosInstance.post('/users/login', { email, password });
       const token = data?.token;
 
       if (token) {
         localStorage.setItem('token', token);
-
-      
-        const res = await api.get('/users/me');
-        login(res.data, token); 
+        
+        // Fetch user data and update auth context
+        const res = await axiosInstance.get('/users/me');
+        login(res.data, token);
 
         toast.success("Login successful");
-        navigate('/home');
+        navigate('/dashboard');
       } else {
         toast.error("Login failed: No token received");
       }
     } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.message || "Login failed");
+      console.error("Login Error:", err);
+      toast.error(err.response?.data?.message || "An unexpected error occurred.");
     } finally {
       setLoading(false);
     }
@@ -68,6 +68,7 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email"
+                required
               />
             </div>
 
@@ -78,13 +79,14 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
+                required
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-md hover:opacity-90 transition"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-md hover:opacity-90 transition disabled:opacity-70"
             >
               {loading ? 'Logging in...' : 'Login Now'}
             </button>
@@ -97,18 +99,24 @@ const Login = () => {
           </div>
 
           <div className="space-y-4">
-            <button className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+            <button 
+              type="button"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+            >
               <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
               <span className="text-sm font-medium text-gray-700 dark:text-white">Login with <b>Google</b></span>
             </button>
-            <button className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+            <button 
+              type="button"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+            >
               <img src="https://www.svgrepo.com/show/452196/facebook-1.svg" alt="Facebook" className="w-5 h-5" />
               <span className="text-sm font-medium text-gray-700 dark:text-white">Login with <b>Facebook</b></span>
             </button>
           </div>
 
           <p className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
-            Don’t have an account?{' '}
+            Don't have an account?{' '}
             <Link to="/register" className="text-blue-600 hover:underline font-medium">
               Register
             </Link>

@@ -1,14 +1,15 @@
+// src/pages/auth/Register.jsx
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
-import axios from 'axios';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext'; 
+import axiosInstance from '../../utils/axiosInstance';
+import { useAuth } from '../../context/AuthContext';
 
 const Register = () => {
   const navigate = useNavigate();
-  const { login } = useAuth(); 
+  const { login } = useAuth();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -18,23 +19,23 @@ const Register = () => {
     gender: '',
     role: 'candidate',
     showPassword: false,
-    termsAccepted: false,
   });
 
   const [loading, setLoading] = useState(false);
   const [showMoreGenders, setShowMoreGenders] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === 'checkbox' ? e.target.checked : value,
     }));
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    const { name, email, password, role, phone, gender, termsAccepted } = formData;
+    const { name, email, password, role, phone, gender } = formData;
 
     if (!name || !email || !password || !role || !phone || !gender) {
       toast.error('All fields are required');
@@ -53,20 +54,24 @@ const Register = () => {
 
     setLoading(true);
     try {
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/users/register`,
-        formData,
-        { withCredentials: true }
-      );
+      const { data } = await axiosInstance.post('/users/register', {
+        name,
+        email,
+        password,
+        role,
+        phone,
+        gender
+      });
 
-      const token = res.data.token;
-      if (token) {
-        login(res.data.user, token); 
+      if (data.token) {
+        login(data.user, data.token);
+        toast.success('Registration successful. Logged in!');
+        navigate('/dashboard');
+      } else {
+        toast.error(data.message || 'Registration failed');
       }
-
-      toast.success('Registration successful. Logged in!');
-      navigate('/home');
     } catch (err) {
+      console.error("Registration error:", err);
       toast.error(err.response?.data?.message || 'Registration failed');
     } finally {
       setLoading(false);
@@ -74,7 +79,7 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex font-['Inter'] bg-white text-gray-800 relative overflow-hidden ">
+    <div className="min-h-screen flex font-['Inter'] bg-white text-gray-800 relative overflow-hidden">
       {/* Decorative Blobs */}
       <div className="absolute -top-20 -left-20 w-[400px] h-[400px] bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
       <div className="absolute -bottom-20 -right-20 w-[400px] h-[400px] bg-yellow-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
@@ -118,6 +123,7 @@ const Register = () => {
             onChange={handleChange}
             placeholder="Full Name"
             className="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
           />
 
           {/* Email */}
@@ -128,6 +134,7 @@ const Register = () => {
             onChange={handleChange}
             placeholder="Email"
             className="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
           />
 
           {/* Password */}
@@ -137,17 +144,14 @@ const Register = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="Password"
+              placeholder="Password (min 6 characters)"
               className="w-full px-4 py-3 pr-12 bg-white text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+              minLength="6"
             />
             <button
               type="button"
-              onClick={() =>
-                setFormData((prev) => ({
-                  ...prev,
-                  showPassword: !prev.showPassword,
-                }))
-              }
+              onClick={() => setFormData(prev => ({ ...prev, showPassword: !prev.showPassword }))}
               className="absolute top-1/2 right-4 -translate-y-1/2 text-gray-500 hover:text-gray-800"
             >
               {formData.showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -164,6 +168,7 @@ const Register = () => {
               onChange={handleChange}
               placeholder="+91"
               className="w-full px-4 py-3 bg-white text-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
             />
           </div>
 
@@ -224,6 +229,7 @@ const Register = () => {
               value={formData.role}
               onChange={handleChange}
               className="w-full px-4 py-3 bg-white text-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
             >
               <option value="candidate">Candidate</option>
               <option value="employer">Employer</option>
@@ -236,9 +242,10 @@ const Register = () => {
               type="checkbox"
               id="termsAccepted"
               name="termsAccepted"
-              checked={formData.termsAccepted}
-              onChange={handleChange}
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
               className="mr-2 form-checkbox h-5 w-5 text-blue-500 focus:ring-blue-500 border-gray-300 rounded"
+              required
             />
             <label htmlFor="termsAccepted" className="text-sm text-gray-600">
               All your information is collected, stored and processed as per our guidelines. By signing up, you agree to our{' '}
@@ -256,7 +263,7 @@ const Register = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:brightness-110 transition shadow-md font-semibold"
+            className="w-full py-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:brightness-110 transition shadow-md font-semibold disabled:opacity-70"
           >
             {loading ? (
               <span className="flex items-center justify-center">
