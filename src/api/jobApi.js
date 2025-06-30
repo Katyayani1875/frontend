@@ -1,10 +1,10 @@
 // src/api/jobApi.js
 import axios from "axios";
-const API = "https://backend-sgy8.onrender.com/api"; // Adjust this to your backend API URL
+const API = "https://backend-sgy8.onrender.com/api"; 
 
-// 🔍 Get autocomplete title suggestions
+// Get autocomplete title suggestions
 export const fetchSuggestions = async (query) => {
-  if (!query) return []; // avoid unnecessary calls
+  if (!query) return []; 
 
   try {
     const response = await axios.get(`${API}/jobs/suggestions`, {
@@ -18,7 +18,7 @@ export const fetchSuggestions = async (query) => {
   }
 };
 
-// 📄 Fetch jobs based on filters (title, location, category)
+// Fetch jobs based on filters (title, location, category)
 export const fetchJobs = async ({ title, location, category }) => {
   try {
     const response = await axios.get(`${API}/jobs`, {
@@ -33,8 +33,7 @@ export const fetchJobs = async ({ title, location, category }) => {
 };
 
 
-// new changes
-// ✅ Fetch user's bookmarked jobs
+// Fetch user's bookmarked jobs
 export const fetchBookmarks = async () => {
   try {
     const token = localStorage.getItem("token"); // or retrieve from your auth context
@@ -49,7 +48,7 @@ export const fetchBookmarks = async () => {
   }
 };
 
-// ✅ Add bookmark
+// Add bookmark
 export const addBookmark = async (jobId) => {
   try {
     const token = localStorage.getItem("token"); //new changes
@@ -70,7 +69,7 @@ export const addBookmark = async (jobId) => {
   }
 };
 
-// ✅ Remove bookmark
+// Remove bookmark
 export const removeBookmark = async (jobId) => {
   try {
     await axios.delete(`${API}/bookmarks/${jobId}`, { withCredentials: true });

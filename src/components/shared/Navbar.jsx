@@ -142,6 +142,12 @@ const Navbar = () => {
             >
               {t("Jobs")}
             </Link>
+             <Link
+              to="/Companies"
+              className="hover:text-blue-600 dark:hover:text-blue-400 transition pr-4"
+            >
+              {t("Company")}
+            </Link>
             <div className="pr-4">
               <Dropdown title={t("AI Insights")} links={aiInsightsLinks} />
             </div>
