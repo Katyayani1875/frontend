@@ -3,9 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { BookmarkIcon, BriefcaseIcon, MapPinIcon, ClockIcon, DollarSignIcon } from "lucide-react";
 import toast from "react-hot-toast";
-import JobService from "../../api/jobApi.js";
-import ApplicationService from "@/services/applicationService";
-import BookmarkService from "@/services/bookmarkService";
+import JobService from "@/services/jobService";
 import { useAuth } from "@/hooks/useAuth";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
@@ -31,13 +29,13 @@ const JobDetail = () => {
         setLoading(true);
         const [jobData, bookmarksData, applicationsData] = await Promise.all([
           JobService.getJobDetails(id),
-          user ? BookmarkService.getUserBookmarks() : Promise.resolve([]),
-          user ? ApplicationService.getUserApplications() : Promise.resolve([])
+          user ? JobService.getUserBookmarks() : Promise.resolve([]),
+          user ? JobService.getUserApplications() : Promise.resolve([])
         ]);
 
         setJob(jobData);
-        setIsBookmarked(bookmarksData.some(b => b.job._id === id));
-        setHasApplied(applicationsData.some(a => a.job._id === id));
+        setIsBookmarked(bookmarksData.some(b => b.jobId === id));
+        setHasApplied(applicationsData.some(a => a.jobId === id));
       } catch (error) {
         console.error("Failed to fetch job data:", error);
         toast.error("Failed to load job details");
@@ -58,7 +56,7 @@ const JobDetail = () => {
 
     try {
       setApplying(true);
-      await ApplicationService.createApplication(id);
+      await JobService.applyForJob(id);
       setHasApplied(true);
       toast.success("Application submitted successfully!");
     } catch (error) {
@@ -78,11 +76,11 @@ const JobDetail = () => {
     try {
       setBookmarking(true);
       if (isBookmarked) {
-        await BookmarkService.removeBookmark(id);
+        await JobService.removeBookmark(id);
         setIsBookmarked(false);
         toast.success("Bookmark removed");
       } else {
-        await BookmarkService.addBookmark(id);
+        await JobService.addBookmark(id);
         setIsBookmarked(true);
         toast.success("Job bookmarked!");
       }
