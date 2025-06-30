@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/components/ui/Button';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/Button';
 import {
   FileTextIcon,
   UserIcon,
@@ -12,26 +10,50 @@ import {
   Building2Icon,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import axiosInstance from '../../utils/axiosInstance';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const [user, setUser] = useState(null);
   const [stats, setStats] = useState({});
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const fetchStats = async () => {
+  const fetchUserData = async () => {
     try {
-      const res = await axios.get('/api/users/me');
-      setStats(res.data);
+      const [userRes, statsRes] = await Promise.all([
+        axiosInstance.get('/users/me'),
+        axiosInstance.get('/users/stats')
+      ]);
+      setUser(userRes.data);
+      setStats(statsRes.data);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to fetch data:", err);
+      navigate('/login');
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchStats();
-  }, []);
+    fetchUserData();
+  }, [navigate]);
 
-  if (!user) return <div className="text-center py-20 text-gray-500">Loading dashboard...</div>;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="text-center py-20 text-gray-500">
+        Failed to load dashboard. Redirecting...
+      </div>
+    );
+  }
 
   const isCandidate = user.role === 'candidate';
   const isEmployer = user.role === 'employer';
@@ -42,6 +64,33 @@ const Dashboard = () => {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Welcome, {user.name}</h1>
         <p className="text-gray-600 dark:text-gray-400">Your personalized dashboard</p>
+        
+        {/* Stats Overview */}
+        {stats.applicationsCount >= 0 && (
+          <div className="flex gap-4 mt-4">
+            {isCandidate && (
+              <>
+                <StatBadge 
+                  value={stats.applicationsCount} 
+                  label="Applications" 
+                  icon={<BriefcaseIcon className="w-4 h-4" />}
+                />
+                <StatBadge
+                  value={stats.bookmarksCount}
+                  label="Bookmarks"
+                  icon={<BookmarkIcon className="w-4 h-4" />}
+                />
+              </>
+            )}
+            {isEmployer && (
+              <StatBadge
+                value={stats.jobsPosted}
+                label="Jobs Posted"
+                icon={<BriefcaseIcon className="w-4 h-4" />}
+              />
+            )}
+          </div>
+        )}
       </div>
 
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -52,6 +101,7 @@ const Dashboard = () => {
               title="Resume"
               icon={<FileTextIcon className="w-6 h-6 text-blue-600" />}
               action="Upload or View"
+              count={stats.resumeComplete ? '✓' : '!'}
               onClick={() => navigate('/resume')}
             />
             <DashboardCard
@@ -59,6 +109,7 @@ const Dashboard = () => {
               title="My Applications"
               icon={<BriefcaseIcon className="w-6 h-6 text-green-600" />}
               action="View Applications"
+              count={stats.applicationsCount}
               onClick={() => navigate('/applications')}
             />
             <DashboardCard
@@ -66,6 +117,7 @@ const Dashboard = () => {
               title="Bookmarked Jobs"
               icon={<BookmarkIcon className="w-6 h-6 text-purple-600" />}
               action="View Bookmarks"
+              count={stats.bookmarksCount}
               onClick={() => navigate('/bookmarks')}
             />
             <DashboardCard
@@ -92,13 +144,14 @@ const Dashboard = () => {
               title="Post a Job"
               icon={<BriefcaseIcon className="w-6 h-6 text-blue-600" />}
               action="Create Job"
-              onClick={() => navigate('/ai/smart-job-post')}
+              onClick={() => navigate('/jobs/new')}
             />
             <DashboardCard
               index={2}
               title="Posted Jobs"
               icon={<LayoutDashboardIcon className="w-6 h-6 text-teal-600" />}
               action="Manage Jobs"
+              count={stats.jobsPosted}
               onClick={() => navigate('/jobs')}
             />
           </>
@@ -111,6 +164,7 @@ const Dashboard = () => {
               title="Users"
               icon={<UserIcon className="w-6 h-6 text-blue-600" />}
               action="Manage Users"
+              count={stats.userCount}
               onClick={() => navigate('/admin/users')}
             />
             <DashboardCard
@@ -118,6 +172,7 @@ const Dashboard = () => {
               title="Jobs"
               icon={<BriefcaseIcon className="w-6 h-6 text-green-600" />}
               action="Manage Jobs"
+              count={stats.jobCount}
               onClick={() => navigate('/admin/jobs')}
             />
             <DashboardCard
@@ -134,6 +189,15 @@ const Dashboard = () => {
   );
 };
 
+const StatBadge = ({ value, label, icon }) => (
+  <div className="flex items-center bg-white/70 dark:bg-gray-700/70 px-3 py-2 rounded-lg shadow-sm">
+    <span className="mr-2 text-gray-500 dark:text-gray-300">{icon}</span>
+    <span className="font-medium text-gray-900 dark:text-white">
+      {value} <span className="text-sm text-gray-500">{label}</span>
+    </span>
+  </div>
+);
+
 const cardVariants = {
   hidden: { opacity: 0, y: 30 },
   visible: (i) => ({
@@ -147,21 +211,25 @@ const cardVariants = {
   }),
 };
 
-const DashboardCard = ({ title, icon, action, onClick, index }) => (
+const DashboardCard = ({ title, icon, action, onClick, index, count }) => (
   <motion.div
     custom={index}
     initial="hidden"
     animate="visible"
     variants={cardVariants}
-    whileHover={{ scale: 1.05, boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}
-    className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg border border-white/40 dark:border-gray-700 shadow-md rounded-2xl p-6 cursor-pointer transition-transform"
+    whileHover={{ scale: 1.03, boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}
+    className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-lg border border-white/40 dark:border-gray-700 rounded-xl p-6 cursor-pointer transition-all relative"
     onClick={onClick}
   >
-    <div className="flex items-center space-x-4 mb-4 group">
+    {count !== undefined && (
+      <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
+        {count}
+      </span>
+    )}
+    <div className="flex items-center space-x-4 mb-4">
       <motion.div
-        whileHover={{ scale: 1.2, rotate: 5 }}
-        transition={{ type: 'spring', stiffness: 300 }}
-        className="p-3 rounded-full bg-white shadow-inner dark:bg-gray-700"
+        whileHover={{ scale: 1.1 }}
+        className="p-3 rounded-full bg-white shadow-sm dark:bg-gray-700"
       >
         {icon}
       </motion.div>

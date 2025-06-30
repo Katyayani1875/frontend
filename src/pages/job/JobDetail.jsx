@@ -55,25 +55,25 @@ const JobDetail = () => {
     fetchJobData();
   }, [id, navigate, isLoggedIn]);
 
-  const handleApply = async () => {
-    if (!isLoggedIn) {
-      navigate("/login", { state: { from: `/jobs/${id}` } });
-      return;
-    }
-
-    try {
-      setApplying(true);
-      await JobService.applications.apply(id, {});
-      setHasApplied(true);
-      toast.success("Application submitted successfully!");
-    } catch (error) {
-      console.error("Application error:", error);
-      toast.error(error.response?.data?.message || "Failed to submit application");
-    } finally {
-      setApplying(false);
-    }
-  };
-
+  // Inside JobDetail.jsx
+const handleApply = async () => {
+  if (!isLoggedIn) {
+    toast.error("Please log in to apply for jobs.");
+    navigate("/login", { state: { from: `/jobs/${id}` } });
+    return;
+  }
+  setApplying(true);
+  try {
+    await axiosInstance.post(`/applications/${id}`, {
+    });
+    setHasApplied(true);
+    toast.success("Application submitted successfully!");
+  } catch (error) {
+    toast.error(error.response?.data?.message || "Failed to submit application");
+  } finally {
+    setApplying(false);
+  }
+};
   const handleBookmark = async () => {
     if (!isLoggedIn) {
       navigate("/login", { state: { from: `/jobs/${id}` } });
