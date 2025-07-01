@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import Marquee from "react-fast-marquee";
-import { ArrowRight, Search, Briefcase, Bot, Users, Cpu, MessageSquare, Bookmark, BookmarkCheck, FileText, CheckCircle, Star, ChevronRight } from "lucide-react";
-import { toast } from "react-hot-toast";
-import JobService from "@/api/jobApi";
-import { Link } from "react-router-dom";
+import { ArrowRight, Search, Bot, Users, Cpu, MessageSquare, FileText, Star, ChevronRight } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom"; // <-- CORRECT: Added useNavigate
 import { Button } from "@/components/ui/Button";
 
 // --- Framer Motion Animation Variants ---
@@ -503,7 +501,7 @@ const FeatureShowcase = () => {
                     <div className="relative h-full flex flex-col md:flex-row items-center justify-between p-8 md:p-12">
                         <motion.div 
                             className="md:w-1/2 text-white z-10 text-center md:text-left"
-                            key={activeTab}
+                            key={`content-${activeTab}`}
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.5, delay: 0.1 }}
@@ -518,7 +516,7 @@ const FeatureShowcase = () => {
                         <div className="relative md:w-1/2 h-48 md:h-full w-full mt-8 md:mt-0 z-10">
                             <AnimatePresence mode="popLayout">
                                 <motion.div
-                                    key={activeTab}
+                                    key={`visual-${activeTab}`}
                                     initial={{ opacity: 0, scale: 0.8, y: 20 }}
                                     animate={{ opacity: 1, scale: 1, y: 0 }}
                                     exit={{ opacity: 0, scale: 0.8, y: -20 }}
@@ -580,72 +578,15 @@ const HowItWorksSection = () => {
     );
 };
 
-// --- MAIN HOME COMPONENT ---
+// --- MAIN HOME COMPONENT (FULLY CORRECTED) ---
 export default function Home() {
-  const [searchResults, setSearchResults] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [bookmarks, setBookmarks] = useState([]);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
-  const handleSearch = async (query) => {
-    if (!query.trim()) {
-      setSearchResults([]);
-      setHasSearched(false);
-      return;
-    }
-    
-    setIsLoading(true);
-    setHasSearched(true);
-    setSearchQuery(query);
-    try {
-      const response = await axiosInstance.get("/jobs", { 
-        params: { 
-          search: query,
-          page: 1, 
-          limit: 10 
-        } 
-      });
-      setSearchResults(response.data.jobs || []);
-    } catch (error) {
-      toast.error("Failed to load jobs");
-      setSearchResults([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const clearSearch = () => {
-    setSearchResults([]);
-    setHasSearched(false);
-    setSearchQuery("");
-  };
-
-  useEffect(() => {
-    const fetchBookmarks = async () => {
-      try {
-        const bookmarkedJobs = await JobService.bookmarks.fetchAll();
-        setBookmarks(bookmarkedJobs.map(job => job._id));
-      } catch (error) {
-        console.log("Bookmarks not loaded - user may not be authenticated");
-      }
-    };
-    fetchBookmarks();
-  }, []);
-
-  const toggleBookmark = async (jobId) => {
-    try {
-      if (bookmarks.includes(jobId)) {
-        await JobService.bookmarks.remove(jobId);
-        setBookmarks(prev => prev.filter(id => id !== jobId));
-        toast.success("Bookmark removed");
-      } else {
-        await JobService.bookmarks.add(jobId);
-        setBookmarks(prev => [...prev, jobId]);
-        toast.success("Bookmark added");
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Please login to bookmark jobs");
+  // CORRECT: This function now navigates to the jobs page with the search query.
+  const handleSearch = (query) => {
+    if (query.trim()) {
+      // Encode the query to handle special characters in the URL
+      navigate(`/jobs?search=${encodeURIComponent(query.trim())}`);
     }
   };
 
@@ -654,104 +595,11 @@ export default function Home() {
       <div className="container mx-auto px-4 sm:px-6">
         <HeroSection onSearch={handleSearch} />
         
-        {/* Search Results Section */}
-        {hasSearched && (
-          <div className="relative z-10 -mt-16 mb-20 max-w-7xl mx-auto px-4">
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-                {isLoading ? "Searching..." : searchResults.length > 0 
-                  ? `Results for "${searchQuery}"` 
-                  : "No jobs found"}
-              </h2>
-              <button 
-                onClick={clearSearch}
-                className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
-              >
-                Clear search
-              </button>
-            </div>
-            
-            {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="h-64 bg-gray-200/80 dark:bg-gray-800/50 rounded-xl animate-pulse"></div>
-                ))}
-              </div>
-            ) : searchResults.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {searchResults.map((job) => (
-                  <motion.div 
-                    key={job._id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-6 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-shadow"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-bold text-lg text-slate-900 dark:text-white">{job.title}</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                          {job.company?.name} • {job.location}
-                        </p>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {job.skills?.slice(0, 3).map(skill => (
-                            <span key={skill} className="text-xs bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300 px-2 py-1 rounded-full">
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <button 
-                        onClick={() => toggleBookmark(job._id)} 
-                        className="text-indigo-500 hover:scale-110 transition"
-                        aria-label={bookmarks.includes(job._id) ? "Remove bookmark" : "Add bookmark"}
-                      >
-                        {bookmarks.includes(job._id) ? 
-                          <BookmarkCheck className="w-5 h-5 fill-current" /> : 
-                          <Bookmark className="w-5 h-5" />
-                        }
-                      </button>
-                    </div>
-                    <div className="mt-4 flex justify-between items-center">
-                      <span className="text-xs bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300 px-3 py-1 rounded-full">
-                        {job.employmentType}
-                      </span>
-                      <Link 
-                        to={`/jobs/${job._id}`} 
-                        className="text-sm flex items-center gap-1 text-indigo-600 dark:text-indigo-400 hover:underline font-semibold"
-                      >
-                        View Details <ChevronRight size={16} />
-                      </Link>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 bg-white/50 dark:bg-slate-800/50 rounded-xl">
-                <p className="text-lg text-slate-600 dark:text-slate-400">
-                  No jobs found matching "{searchQuery}". Try different keywords.
-                </p>
-                <Button 
-                  onClick={clearSearch} 
-                  variant="outline" 
-                  className="mt-4"
-                >
-                  Clear Search
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-        
-        {/* Only show these sections if no search has been performed */}
-        {!hasSearched && (
-          <>
-            <InfiniteLogoScroller />
-            <WhyJobHuntSection />
-            <FeatureShowcase />
-            <HowItWorksSection />
-          </>
-        )}
+        {/* CORRECT: All sections are rendered directly. No more conditional logic for search results. */}
+        <InfiniteLogoScroller />
+        <WhyJobHuntSection />
+        <FeatureShowcase />
+        <HowItWorksSection />
       </div>
     </div>
   );
