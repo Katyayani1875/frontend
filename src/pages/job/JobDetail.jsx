@@ -1,6 +1,6 @@
 // src/pages/job/JobDetail.jsx
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Bookmark, Briefcase, MapPin, DollarSign, Building, CheckCircle, ArrowLeft } from "lucide-react";
@@ -12,9 +12,12 @@ import LoadingSpinner from "../../components/ui/LoadingSpinner.jsx";
 const JobDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [applying, setApplying] = useState(false);
+  const [bookmarking, setBookmarking] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
 
@@ -28,9 +31,14 @@ const JobDetail = () => {
       try {
         const { job: jobDetails } = await JobService.fetchJobDetails(id);
         setJob(jobDetails);
-        if (token) {
-          // Assume we have methods to check these statuses
-          // For now, we'll keep it simple
+
+        if (!!token) {
+          const [bookmarksData, applicationsData] = await Promise.all([
+            JobService.bookmarks.fetchAll(),
+            JobService.applications.getMyApplications()
+          ]);
+          setIsBookmarked(bookmarksData.some(b => b?._id === id));
+          setHasApplied(applicationsData.some(a => a.job === id));
         }
       } catch (error) {
         toast.error("Could not load job details.");
@@ -41,6 +49,39 @@ const JobDetail = () => {
     };
     fetchJobData();
   }, [id, navigate]);
+
+  const handleApply = async () => {
+    if (!isLoggedIn) return navigate("/login", { state: { from: `/jobs/${id}` } });
+    setApplying(true);
+    try {
+      await JobService.applications.apply(id, {});
+      setHasApplied(true);
+      toast.success("Application submitted successfully!");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to submit application");
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  const handleBookmark = async () => {
+    if (!isLoggedIn) return navigate("/login", { state: { from: `/jobs/${id}` } });
+    setBookmarking(true);
+    try {
+      if (isBookmarked) {
+        await JobService.bookmarks.remove(id);
+        toast.success("Bookmark removed");
+      } else {
+        await JobService.bookmarks.add(id);
+        toast.success("Job bookmarked!");
+      }
+      setIsBookmarked(!isBookmarked);
+    } catch (error) {
+      toast.error("Bookmark operation failed");
+    } finally {
+      setBookmarking(false);
+    }
+  };
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center"><LoadingSpinner size="lg" /></div>;
@@ -68,7 +109,6 @@ const JobDetail = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="lg:col-span-2 space-y-8"
           >
-            {/* Header */}
             <div className="flex items-start space-x-6">
               <div className="flex-shrink-0 h-20 w-20 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center shadow-md border border-gray-100 dark:border-gray-700">
                 <Building className="w-10 h-10 text-indigo-500" />
@@ -78,28 +118,8 @@ const JobDetail = () => {
                 <p className="text-xl text-gray-600 dark:text-gray-300 mt-1">{job.company?.name}</p>
               </div>
             </div>
-
-            {/* Job Description */}
             <div className="prose prose-lg dark:prose-invert max-w-none text-gray-700 dark:text-gray-300">
               <p>{job.description}</p>
-              
-              {job.responsibilities?.length > 0 && (
-                <div className="mt-8">
-                  <h3 className="font-bold text-xl mb-3 text-gray-800 dark:text-white">Responsibilities</h3>
-                  <ul className="space-y-2 list-disc list-inside">
-                    {job.responsibilities.map((item, i) => <li key={i}>{item}</li>)}
-                  </ul>
-                </div>
-              )}
-              
-              {job.requirements?.length > 0 && (
-                <div className="mt-8">
-                  <h3 className="font-bold text-xl mb-3 text-gray-800 dark:text-white">Requirements</h3>
-                  <ul className="space-y-2 list-disc list-inside">
-                    {job.requirements.map((item, i) => <li key={i}>{item}</li>)}
-                  </ul>
-                </div>
-              )}
             </div>
           </motion.div>
 
@@ -112,15 +132,24 @@ const JobDetail = () => {
           >
             <div className="sticky top-24 space-y-6">
               <div className="bg-white dark:bg-gray-800/50 backdrop-blur-md border border-gray-200 dark:border-gray-700/50 rounded-2xl shadow-xl p-6">
-                <Button size="lg" className="w-full text-lg font-bold bg-indigo-600 hover:bg-indigo-700">
-                  Apply Now
+                <Button 
+                  size="lg" 
+                  className="w-full text-lg font-bold" 
+                  onClick={handleApply} 
+                  disabled={applying || hasApplied}
+                >
+                  {hasApplied ? <><CheckCircle size={20} className="mr-2"/> Applied</> : (applying ? "Submitting..." : "Apply Now")}
                 </Button>
-                <Button variant="ghost" className="w-full mt-3 text-gray-600 dark:text-gray-300">
-                  <Bookmark className="w-5 h-5 mr-2" />
-                  Save Job
+                <Button 
+                  variant="ghost" 
+                  className="w-full mt-3 text-gray-600 dark:text-gray-300"
+                  onClick={handleBookmark}
+                  disabled={bookmarking}
+                >
+                  <Bookmark className={`w-5 h-5 mr-2 transition-colors ${isBookmarked ? "fill-current text-indigo-500" : ""}`} />
+                  {bookmarking ? "Saving..." : (isBookmarked ? "Saved" : "Save Job")}
                 </Button>
               </div>
-              
               <div className="bg-white dark:bg-gray-800/50 backdrop-blur-md border border-gray-200 dark:border-gray-700/50 rounded-2xl shadow-xl p-6 space-y-4">
                 <h3 className="font-bold text-lg text-gray-900 dark:text-white">Job Overview</h3>
                 <div className="text-gray-600 dark:text-gray-400 text-sm space-y-3">
@@ -149,7 +178,6 @@ const JobDetail = () => {
                   )}
                 </div>
               </div>
-
             </div>
           </motion.div>
         </div>
