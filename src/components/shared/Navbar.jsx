@@ -145,16 +145,16 @@ const Navbar = () => {
                   </motion.div>
                 </AnimatePresence>
               </button>
-
               {user ? (
                 <Link to="/dashboard" className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md hover:opacity-90 transition-opacity">
-                  {user.name.charAt(0).toUpperCase()}
+                  {user?.name?.charAt(0).toUpperCase() || <User size={18} />}
                 </Link>
               ) : (
                 <Link to="/login" className="hidden sm:block px-4 py-1.5 text-sm font-semibold text-white bg-slate-900 dark:bg-white dark:text-slate-900 rounded-full hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors">
                   Sign In
                 </Link>
               )}
+    
               
               <button className="md:hidden flex items-center justify-center w-9 h-9" onClick={() => setMobileMenuOpen(true)}>
                 <Menu size={20} />
