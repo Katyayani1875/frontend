@@ -1,5 +1,5 @@
 import React from "react";
-import { motion } from "framer-motion";
+import { motion, useMotionValue } from 'framer-motion';
 import Marquee from "react-fast-marquee";
 import { ArrowRight, Search, Briefcase, Bot, Users, Cpu, MessageSquare, Bookmark, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
