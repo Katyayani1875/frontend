@@ -17,11 +17,12 @@ const JobService = {
    * @param {Object} filters - Search filters {title, category, location, page, limit}
    * @returns {Promise<{jobs: Array, total: Number, page: Number}>}
    */
-  fetchJobs: async (filters = {}) => {
+    fetchJobs: async (filters = {}) => {
      console.log("Making request with filters:", filters);
     try {
       const params = {
-        search: filters.title,
+        // FIX IS HERE: Change filters.title to filters.search
+        search: filters.search, // <-- CORRECTED THIS LINE!
         category: filters.category,
         location: filters.location,
         page: filters.page || 1,
@@ -90,6 +91,7 @@ const JobService = {
       throw error;
     }
   },
+
 
   // =====================
   // Bookmark Operations
