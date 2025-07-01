@@ -1,11 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
+import React from "react";
+import { motion } from "framer-motion";
 import Marquee from "react-fast-marquee";
-import { ArrowRight, Search, Briefcase, Bot, Users, Cpu, MessageSquare, Bookmark, BookmarkCheck, FileText, CheckCircle, Star, ChevronRight } from "lucide-react";
-import { toast } from "react-hot-toast";
-import JobService from "@/api/jobApi";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/Button";
+import { ArrowRight, Search, Briefcase, Bot, Users, Cpu, MessageSquare, Bookmark, FileText } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 // --- Framer Motion Animation Variants ---
 const sectionVariants = {
@@ -19,7 +16,7 @@ const sectionVariants = {
 
 // ---SECTION 1: HERO ---
 const HeroSection = ({ onSearch }) => {
-  const [jobTitle, setJobTitle] = useState("");
+  const [jobTitle, setJobTitle] = React.useState("");
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -38,10 +35,10 @@ const HeroSection = ({ onSearch }) => {
   };
 
   // --- Hooks for Interactive Background ---
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const backgroundX = useTransform(mouseX, [-1, 1], ["15%", "-15%"]);
-  const backgroundY = useTransform(mouseY, [-1, 1], ["15%", "-15%"]);
+  const mouseX = motion.useMotionValue(0);
+  const mouseY = motion.useMotionValue(0);
+  const backgroundX = motion.useTransform(mouseX, [-1, 1], ["15%", "-15%"]);
+  const backgroundY = motion.useTransform(mouseY, [-1, 1], ["15%", "-15%"]);
 
   const handleMouseMove = (e) => {
     const { clientX, clientY, currentTarget } = e;
@@ -244,22 +241,22 @@ const WhyJobHuntSection = () => {
 
 // --- INTERACTIVE FEATURE CARD COMPONENT ---
 const FeatureCard = ({ feature }) => {
-    const cardRef = useRef(null);
+    const cardRef = React.useRef(null);
     
-    const x = useMotionValue(0);
-    const y = useMotionValue(0);
-    const xSpring = useSpring(x, { stiffness: 300, damping: 30 });
-    const ySpring = useSpring(y, { stiffness: 300, damping: 30 });
-    const rotateX = useTransform(ySpring, [-0.5, 0.5], ["10deg", "-10deg"]);
-    const rotateY = useTransform(xSpring, [-0.5, 0.5], ["-10deg", "10deg"]);
+    const x = motion.useMotionValue(0);
+    const y = motion.useMotionValue(0);
+    const xSpring = motion.useSpring(x, { stiffness: 300, damping: 30 });
+    const ySpring = motion.useSpring(y, { stiffness: 300, damping: 30 });
+    const rotateX = motion.useTransform(ySpring, [-0.5, 0.5], ["10deg", "-10deg"]);
+    const rotateY = motion.useTransform(xSpring, [-0.5, 0.5], ["-10deg", "10deg"]);
     
-    const mouseX = useMotionValue(0);
-    const mouseY = useMotionValue(0);
+    const mouseX = motion.useMotionValue(0);
+    const mouseY = motion.useMotionValue(0);
 
-    const iconX = useMotionValue(0);
-    const iconY = useMotionValue(0);
-    const iconXSpring = useSpring(iconX, { stiffness: 400, damping: 20 });
-    const iconYSpring = useSpring(iconY, { stiffness: 400, damping: 20 });
+    const iconX = motion.useMotionValue(0);
+    const iconY = motion.useMotionValue(0);
+    const iconXSpring = motion.useSpring(iconX, { stiffness: 400, damping: 20 });
+    const iconYSpring = motion.useSpring(iconY, { stiffness: 400, damping: 20 });
 
     const handleMouseMove = (e) => {
       const rect = cardRef.current.getBoundingClientRect();
@@ -312,11 +309,11 @@ const FeatureCard = ({ feature }) => {
                 <motion.div
                     className="absolute inset-0 pointer-events-none"
                     style={{
-                        background: useTransform(
+                        background: motion.useTransform(
                             [mouseX, mouseY],
                             ([latestX, latestY]) => `radial-gradient(circle at ${latestX}px ${latestY}px, rgba(168, 85, 247, 0.15), transparent 80%)`
                         ),
-                        opacity: useTransform(x, [-0.5, 0, 0.5], [0, 1, 0])
+                        opacity: motion.useTransform(x, [-0.5, 0, 0.5], [0, 1, 0])
                     }}
                 />
 
@@ -344,7 +341,7 @@ const FeatureCard = ({ feature }) => {
 
 // ---SECTION 4: INTERACTIVE FEATURE SHOWCASE ---
 const FeatureShowcase = () => {
-    const [activeTab, setActiveTab] = useState(0);
+    const [activeTab, setActiveTab] = React.useState(0);
 
     const tabVisuals = [
       {
@@ -487,18 +484,16 @@ const FeatureShowcase = () => {
                 </div>
 
                 <div className="mt-8 relative h-[32rem] sm:h-[28rem] overflow-hidden rounded-3xl border border-slate-200/50 dark:border-slate-800/50 shadow-2xl">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={activeTab}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.5 }}
-                            className={`absolute inset-0 bg-gradient-to-br ${tabVisuals[activeTab].background}`}
-                        >
-                            <div className="absolute inset-0 bg-grid-pattern opacity-10 dark:opacity-20"></div>
-                        </motion.div>
-                    </AnimatePresence>
+                    <motion.div
+                        key={activeTab}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className={`absolute inset-0 bg-gradient-to-br ${tabVisuals[activeTab].background}`}
+                    >
+                        <div className="absolute inset-0 bg-grid-pattern opacity-10 dark:opacity-20"></div>
+                    </motion.div>
                     
                     <div className="relative h-full flex flex-col md:flex-row items-center justify-between p-8 md:p-12">
                         <motion.div 
@@ -516,18 +511,16 @@ const FeatureShowcase = () => {
                         </motion.div>
                         
                         <div className="relative md:w-1/2 h-48 md:h-full w-full mt-8 md:mt-0 z-10">
-                            <AnimatePresence mode="popLayout">
-                                <motion.div
-                                    key={activeTab}
-                                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                                    transition={{ type: 'spring', stiffness: 150, damping: 20 }}
-                                    className="absolute inset-0"
-                                >
-                                    {tabVisuals[activeTab].visual}
-                                </motion.div>
-                            </AnimatePresence>
+                            <motion.div
+                                key={activeTab}
+                                initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.8, y: -20 }}
+                                transition={{ type: 'spring', stiffness: 150, damping: 20 }}
+                                className="absolute inset-0"
+                            >
+                                {tabVisuals[activeTab].visual}
+                            </motion.div>
                         </div>
                     </div>
                 </div>
@@ -582,70 +575,11 @@ const HowItWorksSection = () => {
 
 // --- MAIN HOME COMPONENT ---
 export default function Home() {
-  const [searchResults, setSearchResults] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [bookmarks, setBookmarks] = useState([]);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
-  const handleSearch = async (query) => {
-    if (!query.trim()) {
-      setSearchResults([]);
-      setHasSearched(false);
-      return;
-    }
-    
-    setIsLoading(true);
-    setHasSearched(true);
-    setSearchQuery(query);
-    try {
-      const response = await axiosInstance.get("/jobs", { 
-        params: { 
-          search: query,
-          page: 1, 
-          limit: 10 
-        } 
-      });
-      setSearchResults(response.data.jobs || []);
-    } catch (error) {
-      toast.error("Failed to load jobs");
-      setSearchResults([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const clearSearch = () => {
-    setSearchResults([]);
-    setHasSearched(false);
-    setSearchQuery("");
-  };
-
-  useEffect(() => {
-    const fetchBookmarks = async () => {
-      try {
-        const bookmarkedJobs = await JobService.bookmarks.fetchAll();
-        setBookmarks(bookmarkedJobs.map(job => job._id));
-      } catch (error) {
-        console.log("Bookmarks not loaded - user may not be authenticated");
-      }
-    };
-    fetchBookmarks();
-  }, []);
-
-  const toggleBookmark = async (jobId) => {
-    try {
-      if (bookmarks.includes(jobId)) {
-        await JobService.bookmarks.remove(jobId);
-        setBookmarks(prev => prev.filter(id => id !== jobId));
-        toast.success("Bookmark removed");
-      } else {
-        await JobService.bookmarks.add(jobId);
-        setBookmarks(prev => [...prev, jobId]);
-        toast.success("Bookmark added");
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Please login to bookmark jobs");
+  const handleSearch = (query) => {
+    if (query.trim()) {
+      navigate(`/jobs?search=${encodeURIComponent(query)}`);
     }
   };
 
@@ -653,116 +587,22 @@ export default function Home() {
     <div className="bg-white dark:bg-[#070912] text-slate-800 dark:text-slate-200">
       <div className="container mx-auto px-4 sm:px-6">
         <HeroSection onSearch={handleSearch} />
-        
-        {/* Search Results Section */}
-        {hasSearched && (
-          <div className="relative z-10 -mt-16 mb-20 max-w-7xl mx-auto px-4">
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-                {isLoading ? "Searching..." : searchResults.length > 0 
-                  ? `Results for "${searchQuery}"` 
-                  : "No jobs found"}
-              </h2>
-              <button 
-                onClick={clearSearch}
-                className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
-              >
-                Clear search
-              </button>
-            </div>
-            
-            {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="h-64 bg-gray-200/80 dark:bg-gray-800/50 rounded-xl animate-pulse"></div>
-                ))}
-              </div>
-            ) : searchResults.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {searchResults.map((job) => (
-                  <motion.div 
-                    key={job._id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-6 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-shadow"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-bold text-lg text-slate-900 dark:text-white">{job.title}</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                          {job.company?.name} • {job.location}
-                        </p>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {job.skills?.slice(0, 3).map(skill => (
-                            <span key={skill} className="text-xs bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300 px-2 py-1 rounded-full">
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <button 
-                        onClick={() => toggleBookmark(job._id)} 
-                        className="text-indigo-500 hover:scale-110 transition"
-                        aria-label={bookmarks.includes(job._id) ? "Remove bookmark" : "Add bookmark"}
-                      >
-                        {bookmarks.includes(job._id) ? 
-                          <BookmarkCheck className="w-5 h-5 fill-current" /> : 
-                          <Bookmark className="w-5 h-5" />
-                        }
-                      </button>
-                    </div>
-                    <div className="mt-4 flex justify-between items-center">
-                      <span className="text-xs bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300 px-3 py-1 rounded-full">
-                        {job.employmentType}
-                      </span>
-                      <Link 
-                        to={`/jobs/${job._id}`} 
-                        className="text-sm flex items-center gap-1 text-indigo-600 dark:text-indigo-400 hover:underline font-semibold"
-                      >
-                        View Details <ChevronRight size={16} />
-                      </Link>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 bg-white/50 dark:bg-slate-800/50 rounded-xl">
-                <p className="text-lg text-slate-600 dark:text-slate-400">
-                  No jobs found matching "{searchQuery}". Try different keywords.
-                </p>
-                <Button 
-                  onClick={clearSearch} 
-                  variant="outline" 
-                  className="mt-4"
-                >
-                  Clear Search
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-        
-        {/* Only show these sections if no search has been performed */}
-        {!hasSearched && (
-          <>
-            <InfiniteLogoScroller />
-            <WhyJobHuntSection />
-            <FeatureShowcase />
-            <HowItWorksSection />
-          </>
-        )}
+        <InfiniteLogoScroller />
+        <WhyJobHuntSection />
+        <FeatureShowcase />
+        <HowItWorksSection />
       </div>
     </div>
   );
 }
 // import React, { useState, useEffect, useRef } from "react";
-// import { motion, AnimatePresence , useMotionValue,useSpring, useTransform} from "framer-motion";
+// import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 // import Marquee from "react-fast-marquee";
-// import { ArrowRight, Search, Briefcase, Bot, Users, Cpu,MessageSquare, Bookmark, BookmarkCheck, FileText, CheckCircle , Star} from "lucide-react";
+// import { ArrowRight, Search, Briefcase, Bot, Users, Cpu, MessageSquare, Bookmark, BookmarkCheck, FileText, CheckCircle, Star, ChevronRight } from "lucide-react";
 // import { toast } from "react-hot-toast";
 // import JobService from "@/api/jobApi";
 // import { Link } from "react-router-dom";
+// import { Button } from "@/components/ui/Button";
 
 // // --- Framer Motion Animation Variants ---
 // const sectionVariants = {
@@ -774,13 +614,15 @@ export default function Home() {
 //   }),
 // };
 
-// // ---SECTION 1: HERO - THE DEFINITIVE "MASTERPIECE" VERSION ---
+// // ---SECTION 1: HERO ---
 // const HeroSection = ({ onSearch }) => {
 //   const [jobTitle, setJobTitle] = useState("");
 
 //   const handleSearch = (e) => {
 //     e.preventDefault();
-//     onSearch(jobTitle);
+//     if (jobTitle.trim()) {
+//       onSearch(jobTitle.trim());
+//     }
 //   };
 
 //   // --- Animation Variants ---
@@ -812,7 +654,6 @@ export default function Home() {
 
 //   return (
 //     <motion.section 
-//       // This is the key fix for the vertical spacing issue
 //       className="relative flex flex-col justify-center min-h-[calc(100vh-20rem)] text-center overflow-hidden bg-slate-50 dark:bg-slate-900"
 //       onMouseMove={handleMouseMove}
 //       onMouseLeave={handleMouseLeave}
@@ -829,7 +670,6 @@ export default function Home() {
 //         <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-purple-500/10 blur-[100px]"></div>
 //       </motion.div>
 
-//       {/* Main content container with vertical centering */}
 //       <div className="flex-grow flex flex-col items-center justify-center relative z-10 px-4">
 //         <motion.div variants={itemVariants} className="max-w-4xl">
 //           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white">
@@ -843,8 +683,6 @@ export default function Home() {
 //           </p>
 //         </motion.div>
 
-        
-//         {/* --- THE NEW, PERFECTED SEARCH FORM --- */}
 //         <motion.form
 //           onSubmit={handleSearch}
 //           className="relative mt-12 w-full max-w-2xl mx-auto"
@@ -873,7 +711,6 @@ export default function Home() {
 //           </div>
 //         </motion.form>
 //       </div>
-//       {/* Social Proof section, pushed to the bottom */}
 //       <motion.div className="w-full pb-11 px-4 p-10" variants={itemVariants}>
 //           <div className="flex justify-center items-center flex-wrap gap-x-6 gap-y-2 text-slate-500 dark:text-slate-400 text-sm">
 //             <div className="flex items-center">
@@ -899,6 +736,7 @@ export default function Home() {
 //     </motion.section>
 //   );
 // };
+
 // // ---SECTION 2: TRUSTED BY COMPANIES (LOGO SCROLLER)---
 // const InfiniteLogoScroller = () => {
 //   const logos = [
@@ -931,7 +769,7 @@ export default function Home() {
 //   );
 // };
 
-
+// // ---SECTION 3: WHY CHOOSE US ---
 // const WhyJobHuntSection = () => {
 //   const features = [
 //     { 
@@ -956,7 +794,6 @@ export default function Home() {
 
 //   return (
 //     <section className="relative py-24 sm:py-32 bg-slate-50 dark:bg-slate-900 overflow-hidden">
-//       {/* --- Breathtaking Aurora Background --- */}
 //       <div className="absolute inset-0 -z-10">
 //         <div className="absolute inset-0 bg-grid-slate-900/[0.04] bg-[bottom_1px_center] dark:bg-grid-slate-400/[0.05] dark:bg-bottom mask-gradient"></div>
 //         <motion.div 
@@ -1006,7 +843,6 @@ export default function Home() {
 // const FeatureCard = ({ feature }) => {
 //     const cardRef = useRef(null);
     
-//     // --- State for 3D Tilt Effect ---
 //     const x = useMotionValue(0);
 //     const y = useMotionValue(0);
 //     const xSpring = useSpring(x, { stiffness: 300, damping: 30 });
@@ -1014,11 +850,9 @@ export default function Home() {
 //     const rotateX = useTransform(ySpring, [-0.5, 0.5], ["10deg", "-10deg"]);
 //     const rotateY = useTransform(xSpring, [-0.5, 0.5], ["-10deg", "10deg"]);
     
-//     // --- State for Spotlight Effect ---
 //     const mouseX = useMotionValue(0);
 //     const mouseY = useMotionValue(0);
 
-//     // --- State for Magnetic Icon ---
 //     const iconX = useMotionValue(0);
 //     const iconY = useMotionValue(0);
 //     const iconXSpring = useSpring(iconX, { stiffness: 400, damping: 20 });
@@ -1028,18 +862,15 @@ export default function Home() {
 //       const rect = cardRef.current.getBoundingClientRect();
 //       const { width, height } = rect;
       
-//       // Update tilt values
 //       const mouseXNorm = (e.clientX - rect.left) / width - 0.5;
 //       const mouseYNorm = (e.clientY - rect.top) / height - 0.5;
 //       x.set(mouseXNorm);
 //       y.set(mouseYNorm);
 
-//       // Update spotlight values
 //       mouseX.set(e.clientX - rect.left);
 //       mouseY.set(e.clientY - rect.top);
 
-//       // Update magnetic icon values (assuming icon container is 64x64)
-//       const iconCenterX = 32 + 32; // container padding + half icon width
+//       const iconCenterX = 32 + 32;
 //       const iconCenterY = 32 + 32;
 //       const distanceX = e.clientX - rect.left - iconCenterX;
 //       const distanceY = e.clientY - rect.top - iconCenterY;
@@ -1075,7 +906,6 @@ export default function Home() {
 //               className="relative h-full p-8 bg-slate-100/60 dark:bg-slate-900/60 rounded-[23px] overflow-hidden"
 //               style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
 //             >
-//                 {/* --- Dynamic Spotlight --- */}
 //                 <motion.div
 //                     className="absolute inset-0 pointer-events-none"
 //                     style={{
@@ -1083,12 +913,11 @@ export default function Home() {
 //                             [mouseX, mouseY],
 //                             ([latestX, latestY]) => `radial-gradient(circle at ${latestX}px ${latestY}px, rgba(168, 85, 247, 0.15), transparent 80%)`
 //                         ),
-//                         opacity: useTransform(x, [-0.5, 0, 0.5], [0, 1, 0]) // Fades in/out at edges
+//                         opacity: useTransform(x, [-0.5, 0, 0.5], [0, 1, 0])
 //                     }}
 //                 />
 
 //                 <div style={{ transform: "translateZ(20px)" }}>
-//                     {/* --- Magnetic Glass Icon Container --- */}
 //                     <motion.div 
 //                         className="relative w-16 h-16 flex items-center justify-center bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl border border-white/50 dark:border-slate-700/50 shadow-lg mb-6"
 //                         style={{ x: iconXSpring, y: iconYSpring, transformStyle: "preserve-3d" }}
@@ -1109,12 +938,12 @@ export default function Home() {
 //         </motion.div>
 //     );
 // };
-// // ---SECTION 4: INTERACTIVE FEATURE SHOWCASE 
+
+// // ---SECTION 4: INTERACTIVE FEATURE SHOWCASE ---
 // const FeatureShowcase = () => {
 //     const [activeTab, setActiveTab] = useState(0);
 
 //     const tabVisuals = [
-//       // Smart Search Visual
 //       {
 //         background: "from-blue-500/80 to-indigo-600/80",
 //         visual: (
@@ -1141,7 +970,6 @@ export default function Home() {
 //           </div>
 //         )
 //       },
-//       // Resume Scan Visual
 //       {
 //         background: "from-purple-500/80 to-violet-600/80",
 //         visual: (
@@ -1173,7 +1001,6 @@ export default function Home() {
 //           </div>
 //         )
 //       },
-//       // NEW Cover Letter Visual
 //       {
 //         background: "from-rose-500/80 to-pink-600/80",
 //         visual: (
@@ -1188,7 +1015,6 @@ export default function Home() {
 //                 <Bot size={18} className="text-white/40" />
 //                 <div className="h-4 w-2/5 rounded-sm bg-white/20" />
 //               </div>
-//               {/* Animated writing effect */}
 //               <div className="space-y-2">
 //                 {[0.8, 0.9, 0.5, 0.7].map((w, i) => (
 //                   <motion.div 
@@ -1212,7 +1038,6 @@ export default function Home() {
 //           </div>
 //         )
 //       },
-//       // AI Chat Visual
 //       {
 //         background: "from-sky-500/80 to-cyan-600/80",
 //         visual: (
@@ -1227,14 +1052,14 @@ export default function Home() {
 //     const tabs = [
 //         { name: "Smart Search", icon: <Search />},
 //         { name: "Resume Scan", icon: <FileText />},
-//         { name: "Cover Letter", icon: <Bot />}, // New Tab
+//         { name: "Cover Letter", icon: <Bot />},
 //         { name: "AI Chat", icon: <MessageSquare />}
 //     ];
 
 //     const tabContent = [
 //         { title: "Pinpoint Precision Search", description: "Find roles that value your unique experience, not just buzzwords. Our semantic search understands the nuances of your skills.", link: "/jobs" },
 //         { title: "Instant Resume Feedback", description: "Get real-time, AI-driven suggestions to optimize your resume for any job, beating the ATS and impressing recruiters.", link: "/ai/analyze-resume" },
-//         { title: "Craft a Perfect Cover Letter", description: "Generate a compelling, tailored cover letter in seconds. Just provide the job description and let our AI do the rest.", link: "/ai/cover-letter" }, // New Content
+//         { title: "Craft a Perfect Cover Letter", description: "Generate a compelling, tailored cover letter in seconds. Just provide the job description and let our AI do the rest.", link: "/ai/cover-letter" },
 //         { title: "24/7 Career Advisor", description: "Practice interviews, ask for career advice, or get help writing a cover letter. Your AI co-pilot is always ready.", link: "/ai/chat" }
 //     ];
 
@@ -1307,6 +1132,7 @@ export default function Home() {
 //         </section>
 //     );
 // };
+
 // // ---SECTION 5: HOW IT WORKS---
 // const HowItWorksSection = () => {
 //     const steps = [
@@ -1351,28 +1177,45 @@ export default function Home() {
 //     );
 // };
 
-
+// // --- MAIN HOME COMPONENT ---
 // export default function Home() {
 //   const [searchResults, setSearchResults] = useState([]);
 //   const [isLoading, setIsLoading] = useState(false);
 //   const [bookmarks, setBookmarks] = useState([]);
+//   const [hasSearched, setHasSearched] = useState(false);
+//   const [searchQuery, setSearchQuery] = useState("");
 
-//   // Mock search handler
-//   const handleSearch = async (title) => {
-//     if (!title) {
-//         setSearchResults([]);
-//         return;
+//   const handleSearch = async (query) => {
+//     if (!query.trim()) {
+//       setSearchResults([]);
+//       setHasSearched(false);
+//       return;
 //     }
+    
 //     setIsLoading(true);
+//     setHasSearched(true);
+//     setSearchQuery(query);
 //     try {
-//         const { jobs } = await JobService.fetchJobs({ title, page: 1, limit: 4 });
-//         setSearchResults(jobs);
+//       const response = await axiosInstance.get("/jobs", { 
+//         params: { 
+//           search: query,
+//           page: 1, 
+//           limit: 10 
+//         } 
+//       });
+//       setSearchResults(response.data.jobs || []);
 //     } catch (error) {
-//         toast.error("Failed to load jobs");
-//         setSearchResults([]);
+//       toast.error("Failed to load jobs");
+//       setSearchResults([]);
 //     } finally {
-//         setIsLoading(false);
+//       setIsLoading(false);
 //     }
+//   };
+
+//   const clearSearch = () => {
+//     setSearchResults([]);
+//     setHasSearched(false);
+//     setSearchQuery("");
 //   };
 
 //   useEffect(() => {
@@ -1407,48 +1250,105 @@ export default function Home() {
 //     <div className="bg-white dark:bg-[#070912] text-slate-800 dark:text-slate-200">
 //       <div className="container mx-auto px-4 sm:px-6">
 //         <HeroSection onSearch={handleSearch} />
-//         {isLoading && (
-//             <div className="text-center py-10">
-//                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
-//                 <p className="mt-2 text-slate-600 dark:text-slate-400">Searching for greatness...</p>
-//             </div>
-//         )}
-//         {!isLoading && searchResults.length > 0 && (
-//             <motion.div 
-//                 className="relative z-10 -mt-16 mb-20 max-w-4xl mx-auto"
-//                 initial={{ opacity: 0, y: -20 }}
-//                 animate={{ opacity: 1, y: 0 }}
-//             >
-//               <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6 text-center">
-//                 Top Matches For You
+        
+//         {/* Search Results Section */}
+//         {hasSearched && (
+//           <div className="relative z-10 -mt-16 mb-20 max-w-7xl mx-auto px-4">
+//             <div className="flex justify-between items-center mb-8">
+//               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+//                 {isLoading ? "Searching..." : searchResults.length > 0 
+//                   ? `Results for "${searchQuery}"` 
+//                   : "No jobs found"}
 //               </h2>
-//               <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//               <button 
+//                 onClick={clearSearch}
+//                 className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
+//               >
+//                 Clear search
+//               </button>
+//             </div>
+            
+//             {isLoading ? (
+//               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+//                 {Array.from({ length: 6 }).map((_, i) => (
+//                   <div key={i} className="h-64 bg-gray-200/80 dark:bg-gray-800/50 rounded-xl animate-pulse"></div>
+//                 ))}
+//               </div>
+//             ) : searchResults.length > 0 ? (
+//               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 //                 {searchResults.map((job) => (
-//                   <li key={job._id} className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-4 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700">
+//                   <motion.div 
+//                     key={job._id}
+//                     initial={{ opacity: 0, y: 20 }}
+//                     animate={{ opacity: 1, y: 0 }}
+//                     transition={{ duration: 0.3 }}
+//                     className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-6 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-shadow"
+//                   >
 //                     <div className="flex justify-between items-start">
 //                       <div>
-//                         <h3 className="font-semibold text-slate-900 dark:text-white">{job.title}</h3>
-//                         <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{job.company?.name} • {job.location}</p>
+//                         <h3 className="font-bold text-lg text-slate-900 dark:text-white">{job.title}</h3>
+//                         <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+//                           {job.company?.name} • {job.location}
+//                         </p>
+//                         <div className="mt-3 flex flex-wrap gap-2">
+//                           {job.skills?.slice(0, 3).map(skill => (
+//                             <span key={skill} className="text-xs bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300 px-2 py-1 rounded-full">
+//                               {skill}
+//                             </span>
+//                           ))}
+//                         </div>
 //                       </div>
-//                       <button onClick={() => toggleBookmark(job._id)} className="text-indigo-500 hover:scale-110 transition">
-//                         {bookmarks.includes(job._id) ? <BookmarkCheck className="w-5 h-5 fill-current" /> : <Bookmark className="w-5 h-5" />}
+//                       <button 
+//                         onClick={() => toggleBookmark(job._id)} 
+//                         className="text-indigo-500 hover:scale-110 transition"
+//                         aria-label={bookmarks.includes(job._id) ? "Remove bookmark" : "Add bookmark"}
+//                       >
+//                         {bookmarks.includes(job._id) ? 
+//                           <BookmarkCheck className="w-5 h-5 fill-current" /> : 
+//                           <Bookmark className="w-5 h-5" />
+//                         }
 //                       </button>
 //                     </div>
-//                     <div className="mt-3 flex justify-between items-center">
-//                       <span className="text-xs bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300 px-3 py-1 rounded-full">{job.employmentType}</span>
-//                       <Link to={`/jobs/${job._id}`} className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline font-semibold">
-//                         View Details
+//                     <div className="mt-4 flex justify-between items-center">
+//                       <span className="text-xs bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300 px-3 py-1 rounded-full">
+//                         {job.employmentType}
+//                       </span>
+//                       <Link 
+//                         to={`/jobs/${job._id}`} 
+//                         className="text-sm flex items-center gap-1 text-indigo-600 dark:text-indigo-400 hover:underline font-semibold"
+//                       >
+//                         View Details <ChevronRight size={16} />
 //                       </Link>
 //                     </div>
-//                   </li>
+//                   </motion.div>
 //                 ))}
-//               </ul>
-//             </motion.div>
+//               </div>
+//             ) : (
+//               <div className="text-center py-12 bg-white/50 dark:bg-slate-800/50 rounded-xl">
+//                 <p className="text-lg text-slate-600 dark:text-slate-400">
+//                   No jobs found matching "{searchQuery}". Try different keywords.
+//                 </p>
+//                 <Button 
+//                   onClick={clearSearch} 
+//                   variant="outline" 
+//                   className="mt-4"
+//                 >
+//                   Clear Search
+//                 </Button>
+//               </div>
+//             )}
+//           </div>
 //         )}
-//         <InfiniteLogoScroller />
-//         <WhyJobHuntSection />
-//         <FeatureShowcase />
-//         <HowItWorksSection />
+        
+//         {/* Only show these sections if no search has been performed */}
+//         {!hasSearched && (
+//           <>
+//             <InfiniteLogoScroller />
+//             <WhyJobHuntSection />
+//             <FeatureShowcase />
+//             <HowItWorksSection />
+//           </>
+//         )}
 //       </div>
 //     </div>
 //   );
