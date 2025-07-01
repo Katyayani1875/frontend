@@ -18,7 +18,6 @@ const JobService = {
    * @returns {Promise<{jobs: Array, total: Number, page: Number}>}
    */
     fetchJobs: async (filters = {}) => {
-     console.log("Making request with filters:", filters);
     try {
       const params = {
         // FIX IS HERE: Change filters.title to filters.search
@@ -29,7 +28,6 @@ const JobService = {
         limit: filters.limit || 10,
         sort: filters.sort,
       };
-       console.log("Final params being sent:", params);
       const { data } = await axiosInstance.get('/jobs', { params });
       
       return {
@@ -91,7 +89,28 @@ const JobService = {
       throw error;
     }
   },
-
+  
+  fetchByCategory: async (slug, options = {}) => {
+    try {
+      const params = {
+        page: options.page || 1,
+        limit: options.limit || 10
+      };
+      
+      const { data } = await axiosInstance.get(`/jobs/category/${slug}`, { params });
+      
+      return {
+        category: data.category, // This will be the category name (e.g., "IT Development")
+        jobs: data.jobs || [],
+        total: data.total || 0,
+        page: data.page || 1,
+        totalPages: data.totalPages || 1,
+      };
+    } catch (error) {
+      console.error('[JobService] Error fetching jobs by category:', error);
+      throw error;
+    }
+  },
 
   // =====================
   // Bookmark Operations
