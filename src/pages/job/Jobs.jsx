@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useCallback, memo } from "react";
 import { Link, useSearchParams } from "react-router-dom"; // <-- ADD useSearchParams
 import { Briefcase, MapPin, Search, Zap } from "lucide-react";
