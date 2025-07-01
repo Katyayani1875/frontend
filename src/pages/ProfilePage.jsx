@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { User, BrainCircuit, Zap, CheckCircle, Edit, Camera, FileText, Share2, Plus, Briefcase, GraduationCap, Star, Lightbulb, Bookmark, Mail, Phone, MapPin, X } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
-import { Textarea } from "../components/ui/textarea";
+import { Textarea } from "../components/ui/Textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Progress } from "../components/ui/progress";
 import * as pdfjsLib from 'pdfjs-dist';
