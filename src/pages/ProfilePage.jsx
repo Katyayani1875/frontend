@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, BrainCircuit, Zap, CheckCircle, Edit, Camera, FileText, Share2, Plus, Briefcase, GraduationCap, Star, Lightbulb, Bookmark } from "lucide-react";
+import { User, BrainCircuit, Zap, CheckCircle, Edit, Camera, FileText, Share2, Plus, Briefcase, GraduationCap, Star, Lightbulb, Bookmark, Mail, Phone, MapPin } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
