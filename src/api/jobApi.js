@@ -18,6 +18,7 @@ const JobService = {
    * @returns {Promise<{jobs: Array, total: Number, page: Number}>}
    */
   fetchJobs: async (filters = {}) => {
+     console.log("Making request with filters:", filters);
     try {
       const params = {
         search: filters.title,
@@ -27,7 +28,7 @@ const JobService = {
         limit: filters.limit || 10,
         sort: filters.sort,
       };
-
+       console.log("Final params being sent:", params);
       const { data } = await axiosInstance.get('/jobs', { params });
       
       return {
