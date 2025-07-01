@@ -5,8 +5,78 @@ import { motion, AnimatePresence } from "framer-motion";
 import JobService from "@/api/jobApi";
 import { Button } from "@/components/ui/Button";
 
-// ... (Keep your JobListItem and FeaturedJobDisplay components exactly as they were)
+// Job List Item Component
+const JobListItem = memo(({ job, onHover, isActive }) => {
+  return (
+    <div onMouseEnter={() => onHover(job)} className="relative group">
+      <Link to={`/jobs/${job._id}`} className="block">
+        <div 
+          className={`p-5 rounded-xl border-2 transition-all duration-300 ease-in-out
+            ${isActive 
+              ? 'bg-white dark:bg-slate-800 shadow-2xl -translate-x-2 border-indigo-500 ring-2 ring-indigo-500/30' 
+              : 'bg-white/80 dark:bg-slate-800/40 border-transparent group-hover:bg-white dark:group-hover:bg-slate-800/70 group-hover:border-indigo-400 group-hover:shadow-lg'
+            }`
+          }
+        >
+          <p className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+            {job.company?.name || "A Reputable Company"}
+          </p>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-1">
+            {job.title}
+          </h3>
+          <div className="flex flex-wrap items-center text-slate-500 dark:text-slate-400 text-sm mt-3 gap-x-4 gap-y-1">
+            <span className="flex items-center"><MapPin size={14} className="mr-1.5 flex-shrink-0" />{job.location || "Remote"}</span>
+            <span className="flex items-center"><Briefcase size={14} className="mr-1.5 flex-shrink-0" />{job.employmentType || "Full-time"}</span>
+          </div>
+        </div>
+      </Link>
+    </div>
+  );
+});
 
+// Featured Job Display Component
+const FeaturedJobDisplay = ({ job }) => {
+  if (!job) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-center p-8 bg-white dark:bg-slate-800/50 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700">
+        <Search size={48} className="text-indigo-400 dark:text-indigo-500 mb-4" />
+        <h3 className="text-xl font-bold text-slate-800 dark:text-white">No Jobs Found</h3>
+        <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-xs">There are no open positions matching your criteria. Try a different search.</p>
+      </div>
+    );
+  }
+  
+  const skills = job.skills || ['React', 'Node.js', 'MongoDB'];
+
+  return (
+    <div className="p-8 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 h-full flex flex-col">
+      <div className="flex-grow">
+        <p className="text-base font-semibold text-indigo-600 dark:text-indigo-400">{job.company?.name}</p>
+        <h2 className="text-4xl font-bold text-slate-900 dark:text-white mt-2 leading-tight">{job.title}</h2>
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-slate-500 dark:text-slate-400 text-sm mt-4">
+          <div className="flex items-center gap-1.5"><MapPin size={16} />{job.location}</div>
+          <div className="flex items-center gap-1.5"><Briefcase size={16} />{job.employmentType}</div>
+        </div>
+        <p className="text-slate-600 dark:text-slate-300 mt-6 text-base leading-relaxed line-clamp-4">{job.description}</p>
+        <div className="mt-6 border-t border-slate-200 dark:border-slate-700 pt-6">
+          <h4 className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-3">Core Skills</h4>
+          <div className="flex flex-wrap gap-2">
+            {skills.map(skill => (
+              <span key={skill} className="bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-1 rounded-full dark:bg-indigo-900 dark:text-indigo-300">{skill}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="mt-auto pt-8">
+        <Link to={`/jobs/${job._id}`}>
+          <Button size="lg" className="w-full font-bold text-lg bg-indigo-600 hover:bg-indigo-700 text-white">View Full Details & Apply</Button>
+        </Link>
+      </div>
+    </div>
+  );
+};
+
+// Main Jobs Component
 const Jobs = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,13 +94,10 @@ const Jobs = () => {
       const params = {
         page: pageNum,
         limit: 10,
-        ...(search && { search: `"${search}"` }), // Add quotes for exact phrase matching
+        ...(search && { search: `"${search}"` }), // Exact phrase matching
       };
 
       const res = await JobService.fetchJobs(params);
-      
-      // Debugging log - remove in production
-      console.log("API Response:", res);
       
       setJobs(res.jobs || []);
       setTotalPages(res.totalPages || 1);
@@ -43,12 +110,10 @@ const Jobs = () => {
     }
   }, []);
 
-  // Fetch jobs when page changes
   useEffect(() => {
     fetchJobs(page, searchTerm);
   }, [page, fetchJobs]);
 
-  // Reset to page 1 and fetch when search term changes
   useEffect(() => {
     if (searchTerm) {
       setPage(1);
