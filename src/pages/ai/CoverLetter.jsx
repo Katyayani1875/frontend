@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Sparkles, User, Briefcase, FileText, Download, Copy, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Textarea } from '@/components/ui/textarea';
+import { Textarea } from '@/components/ui/Textarea';
 import { toast } from 'react-hot-toast';
 
 const STEPS = [
