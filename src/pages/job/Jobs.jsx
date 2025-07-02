@@ -8,13 +8,12 @@ import { Button } from "@/components/ui/Button";
 
 // --- New Components / Enhanced Existing Ones ---
 
-// SearchBar Component
-const SearchBar = ({ onSearch, initialSearch, initialLocation }) => {
+// SearchBar Component (Updated: Removed Location)
+const SearchBar = ({ onSearch, initialSearch }) => { // Removed initialLocation
     const [searchTerm, setSearchTerm] = useState(initialSearch || '');
-    const [locationTerm, setLocationTerm] = useState(initialLocation || '');
 
     const handleSearchClick = () => {
-        onSearch(searchTerm, locationTerm);
+        onSearch(searchTerm); // Only pass searchTerm
     };
 
     const handleKeyDown = (e) => {
@@ -25,8 +24,7 @@ const SearchBar = ({ onSearch, initialSearch, initialLocation }) => {
 
     const clearSearch = () => {
         setSearchTerm('');
-        setLocationTerm('');
-        onSearch('', ''); // Trigger a search with empty terms
+        onSearch(''); // Trigger a search with empty terms
     };
 
     // Keep internal state in sync with external initial values (URL params)
@@ -34,48 +32,32 @@ const SearchBar = ({ onSearch, initialSearch, initialLocation }) => {
         setSearchTerm(initialSearch || '');
     }, [initialSearch]);
 
-    useEffect(() => {
-        setLocationTerm(initialLocation || '');
-    }, [initialLocation]);
-
     return (
         <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="w-full max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-3xl p-4 shadow-xl border border-slate-200 dark:border-slate-700 flex flex-col md:flex-row items-center gap-4 relative z-10 backdrop-blur-sm"
+            className="w-full max-w-3xl mx-auto rounded-3xl p-3.5 shadow-2xl border border-slate-200 dark:border-slate-700 flex items-center gap-3 relative z-10 frosted-glass" // Added frosted-glass
         >
-            <div className="flex flex-1 w-full gap-3">
-                <div className="flex-1 relative">
-                    <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                        type="text"
-                        placeholder="Job title, keywords..."
-                        className="w-full py-3 pl-12 pr-4 rounded-xl bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                    />
-                </div>
-                <div className="flex-1 relative">
-                    <MapPin size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                        type="text"
-                        placeholder="Location (e.g., Remote, NYC)"
-                        className="w-full py-3 pl-12 pr-4 rounded-xl bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                        value={locationTerm}
-                        onChange={(e) => setLocationTerm(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                    />
-                </div>
+            <div className="flex-1 relative">
+                <Search size={22} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
+                <input
+                    type="text"
+                    placeholder="Search job titles, skills, or keywords..."
+                    className="w-full py-3.5 pl-12 pr-4 rounded-xl bg-transparent text-slate-800 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-lg"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                />
             </div>
             <Button
                 onClick={handleSearchClick}
-                className="w-full md:w-auto h-auto py-3 px-8 text-lg font-semibold bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 transition-all rounded-xl shadow-md"
+                className="w-auto h-auto py-3.5 px-8 text-lg font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 transition-all rounded-xl shadow-md flex items-center group"
             >
-                Search Jobs
+                <span className="opacity-100 group-hover:opacity-0 transition-opacity duration-200">Search</span>
+                <Search size={20} className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
             </Button>
-            {(searchTerm || locationTerm) && (
+            {searchTerm && (
                 <Button
                     onClick={clearSearch}
                     variant="ghost"
@@ -103,29 +85,29 @@ const JobListItem = memo(({ job, onHover, isActive }) => {
     >
       <Link to={`/jobs/${job._id}`} className="block">
         <div
-          className={`p-5 rounded-xl border-2 transition-all duration-300 ease-in-out
+          className={`p-6 rounded-2xl border-2 transition-all duration-300 ease-in-out
             ${isActive
               ? 'bg-white dark:bg-slate-800 shadow-2xl translate-x-0 border-indigo-500 ring-2 ring-indigo-500/30'
               : 'bg-white/70 dark:bg-slate-800/40 border-transparent group-hover:bg-white dark:group-hover:bg-slate-800/70 group-hover:border-indigo-400 group-hover:shadow-lg'
             }
-            flex flex-col h-full
+            flex flex-col h-full transform group-hover:scale-[1.01]
           `}
         >
-          <p className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 mb-1">
+          <p className="text-base font-semibold text-indigo-600 dark:text-indigo-400 mb-1">
             {job.company?.name || "A Reputable Company"}
           </p>
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white leading-tight mb-3">
+          <h3 className="text-2xl font-bold text-slate-900 dark:text-white leading-snug mb-3">
             {job.title}
           </h3>
-          <div className="flex flex-wrap items-center text-slate-500 dark:text-slate-400 text-sm gap-x-4 gap-y-1 flex-grow">
-            <span className="flex items-center"><MapPin size={14} className="mr-1.5 flex-shrink-0" />{job.location || "Remote"}</span>
-            <span className="flex items-center"><Briefcase size={14} className="mr-1.5 flex-shrink-0" />{job.employmentType || "Full-time"}</span>
-            {job.salaryRange && ( // Assuming salaryRange is available
-              <span className="flex items-center"><DollarSign size={14} className="mr-1.5 flex-shrink-0" />{job.salaryRange}</span>
+          <div className="flex flex-wrap items-center text-slate-500 dark:text-slate-400 text-sm gap-x-5 gap-y-2 flex-grow">
+            <span className="flex items-center"><MapPin size={16} className="mr-1.5 flex-shrink-0" />{job.location || "Remote"}</span>
+            <span className="flex items-center"><Briefcase size={16} className="mr-1.5 flex-shrink-0" />{job.employmentType || "Full-time"}</span>
+            {job.salaryRange && (
+              <span className="flex items-center"><DollarSign size={16} className="mr-1.5 flex-shrink-0" />{job.salaryRange}</span>
             )}
           </div>
           {isActive && (
-              <motion.div layoutId="active-job-indicator" className="absolute left-0 top-0 bottom-0 w-1.5 bg-indigo-600 rounded-l-xl" />
+              <motion.div layoutId="active-job-indicator" className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-b from-indigo-600 to-purple-600 rounded-l-2xl" />
           )}
         </div>
       </Link>
@@ -146,7 +128,7 @@ const FeaturedJobDisplay = ({ job }) => {
     );
   }
 
-  const skills = job.skills || []; // Ensure skills is an array
+  const skills = job.skills || [];
 
   return (
     <div className="p-8 bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 h-full flex flex-col">
@@ -231,7 +213,6 @@ const Jobs = () => {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const searchTerm = searchParams.get('search') || '';
-  const locationTerm = searchParams.get('location') || '';
   const selectedCategorySlug = searchParams.get('category');
 
   // Function to fetch all categories
@@ -247,8 +228,8 @@ const Jobs = () => {
     }
   }, []);
 
-  // Modify fetchJobs to handle search, location, and category
-  const fetchJobs = useCallback(async (pageNum, search, location, categorySlug) => {
+  // Modify fetchJobs to handle search and category (Removed location)
+  const fetchJobs = useCallback(async (pageNum, search, categorySlug) => { // Removed location param
     setLoading(true);
     try {
       let res;
@@ -260,7 +241,6 @@ const Jobs = () => {
         const params = {
           ...commonParams,
           ...(search && { search: `"${search}"` }),
-          ...(location && { location: `"${location}"` }),
         };
         res = await JobService.fetchJobs(params);
       }
@@ -277,7 +257,7 @@ const Jobs = () => {
       setTotalJobs(0);
       setFeaturedJob(null);
     } finally {
-      setTimeout(() => setLoading(false), 500); // Simulate network latency for smoother UX
+      setTimeout(() => setLoading(false), 500);
     }
   }, []);
 
@@ -286,45 +266,40 @@ const Jobs = () => {
     fetchAllCategories();
   }, [fetchAllCategories]);
 
-  // Effect to trigger job fetching when page, searchTerm, locationTerm, or selectedCategorySlug changes
+  // Effect to trigger job fetching when page, searchTerm, or selectedCategorySlug changes
   useEffect(() => {
-    // Reset page to 1 if any filter (search, location, or category) changes from its initial/default state
-    // AND the current page is not already 1.
-    // This prevents re-fetching with old page number on new filter
-    if (page !== 1 && (searchTerm || locationTerm || selectedCategorySlug)) {
-        // Check if the current URL params are different from what would result from page 1
+    if (page !== 1 && (searchTerm || selectedCategorySlug)) { // Removed locationTerm
         const currentSearchParams = new URLSearchParams(window.location.search);
         currentSearchParams.set('page', '1');
         const expectedUrl = currentSearchParams.toString();
         if (window.location.search !== `?${expectedUrl}` && window.location.search !== `?${expectedUrl}&`) {
-            setPage(1); // Only reset page if it's not already 1 and a filter is active
-            return; // Skip immediate fetch, it will re-trigger on page state update
+            setPage(1);
+            return;
         }
     }
-    fetchJobs(page, searchTerm, locationTerm, selectedCategorySlug);
-  }, [page, searchTerm, locationTerm, selectedCategorySlug, fetchJobs]);
+    fetchJobs(page, searchTerm, selectedCategorySlug); // Removed locationTerm
+  }, [page, searchTerm, selectedCategorySlug, fetchJobs]); // Removed locationTerm
 
-
-  // Handler for search bar submission
-  const handleSearchBarSubmit = (searchVal, locationVal) => {
+  // Handler for search bar submission (Updated: Removed Location)
+  const handleSearchBarSubmit = (searchVal) => { // Removed locationVal
     setSearchParams(prevParams => {
         const newParams = new URLSearchParams(prevParams);
         if (searchVal) newParams.set('search', searchVal); else newParams.delete('search');
-        if (locationVal) newParams.set('location', locationVal); else newParams.delete('location');
-        newParams.delete('category'); // Clear category filter when searching
+        newParams.delete('location'); // Explicitly remove location from URL
+        newParams.delete('category');
         newParams.set('page', 1);
         return newParams;
     });
   };
 
-  // Handler for category clicks
+  // Handler for category clicks (Updated: Removed Location from clear)
   const handleCategoryClick = (categorySlug) => {
     setSearchParams(prevParams => {
       const newParams = new URLSearchParams(prevParams);
       if (categorySlug) {
         newParams.set('category', categorySlug);
-        newParams.delete('search'); // Clear search term when category is selected
-        newParams.delete('location'); // Clear location term when category is selected
+        newParams.delete('search');
+        newParams.delete('location'); // Explicitly remove location from URL
       } else {
         newParams.delete('category');
       }
@@ -333,34 +308,33 @@ const Jobs = () => {
     });
   };
 
-  // Handler for clearing all filters (search, location, and category)
+  // Handler for clearing all filters (Updated: Removed Location)
   const clearAllFilters = () => {
     setSearchParams(new URLSearchParams());
     setPage(1);
   };
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-slate-950 min-h-screen relative overflow-hidden">
+    <div className="bg-gradient-to-br from-gray-50 to-white dark:from-slate-950 dark:to-gray-900 min-h-screen relative overflow-hidden"> {/* Updated background gradients */}
         {/* Subtle background gradients/blobs for aesthetic */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-purple-300 dark:bg-purple-900 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute bottom-0 right-0 w-80 h-80 bg-indigo-300 dark:bg-indigo-900 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-purple-300 dark:bg-purple-800 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div> {/* Reduced opacity */}
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-indigo-300 dark:bg-indigo-800 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div> {/* Reduced opacity, adjusted dark color */}
 
         <div className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-24 relative z-10">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-center mb-16">
-                <h1 className="text-5xl md:text-7xl font-extrabold tracking-tighter text-slate-900 dark:text-white">
-                    {/* Dynamically change the title based on active filter */}
+                <h1 className="text-5xl md:text-7xl font-extrabold tracking-tighter text-slate-900 dark:text-white leading-tight"> {/* Leading tight for better typography */}
                     {selectedCategorySlug
                         ? (categories.find(cat => cat.slug === selectedCategorySlug)?.name || 'Category') + ' Jobs'
-                        : (searchTerm || locationTerm)
+                        : searchTerm
                             ? 'Search Results'
                             : <>Find Your <span className="text-indigo-600 dark:text-indigo-400 font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600">Next Role</span></>
                     }
                 </h1>
-                <p className="mt-4 text-lg text-slate-700 dark:text-slate-300 max-w-3xl mx-auto">
+                <p className="mt-4 text-xl text-slate-700 dark:text-slate-300 max-w-3xl mx-auto font-medium"> {/* Increased font size, font weight */}
                    {selectedCategorySlug
-                      ? <>Explore <span className="font-bold text-slate-900 dark:text-white">{totalJobs}</span> opportunities in "{categories.find(cat => cat.slug === selectedCategorySlug)?.name || selectedCategorySlug}"</>
-                      : (searchTerm || locationTerm)
-                          ? <>Found <span className="font-bold text-slate-900 dark:text-white">{totalJobs}</span> {totalJobs === 1 ? 'job' : 'jobs'} matching your criteria.</>
+                      ? <>Explore <span className="font-bold text-slate-900 dark:text-white">{totalJobs}</span> opportunities in "<span className="text-indigo-700 dark:text-indigo-300">{categories.find(cat => cat.slug === selectedCategorySlug)?.name || selectedCategorySlug}</span>"</>
+                      : searchTerm
+                          ? <>Found <span className="font-bold text-slate-900 dark:text-white">{totalJobs}</span> {totalJobs === 1 ? 'job' : 'jobs'} matching "<span className="text-indigo-700 dark:text-indigo-300">{searchTerm}</span>".</>
                           : "We meticulously curate opportunities from the world's most innovative companies."
                    }
                 </p>
@@ -370,10 +344,9 @@ const Jobs = () => {
             <SearchBar
                 onSearch={handleSearchBarSubmit}
                 initialSearch={searchTerm}
-                initialLocation={locationTerm}
             />
 
-            {(searchTerm || locationTerm || selectedCategorySlug) && (
+            {(searchTerm || selectedCategorySlug) && ( // Removed locationTerm
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -383,7 +356,7 @@ const Jobs = () => {
                     <Button
                         onClick={clearAllFilters}
                         variant="ghost"
-                        className="text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-700 rounded-full px-6 py-2 shadow-sm"
+                        className="text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-700 rounded-full px-6 py-2 shadow-sm border border-slate-200 dark:border-slate-700"
                     >
                         <X size={16} className="mr-2" /> Clear All Filters
                     </Button>
@@ -408,8 +381,8 @@ const Jobs = () => {
                     <div className="flex flex-wrap justify-center gap-3">
                         <Button
                             onClick={() => handleCategoryClick(null)}
-                            variant={!selectedCategorySlug && !searchTerm && !locationTerm ? "default" : "outline"}
-                            className={`${(!selectedCategorySlug && !searchTerm && !locationTerm) ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border-slate-300 dark:border-slate-700'} rounded-full px-5 py-2 text-base font-semibold transition-all duration-200`}
+                            variant={!selectedCategorySlug && !searchTerm ? "default" : "outline"} // Removed locationTerm
+                            className={`${(!selectedCategorySlug && !searchTerm) ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border-slate-300 dark:border-slate-700'} rounded-full px-5 py-2 text-base font-semibold transition-all duration-200`}
                         >
                             All Categories
                         </Button>
@@ -473,12 +446,12 @@ const Jobs = () => {
                                     <Search size={48} className="mx-auto mb-4 text-indigo-400" />
                                     <p className="font-semibold text-lg">No Jobs Found</p>
                                     <p className="text-sm mt-1 max-w-sm mx-auto">
-                                        {searchTerm || locationTerm || selectedCategorySlug
-                                            ? `No results for "${searchTerm || selectedCategorySlug || locationTerm}". Try different keywords or categories.`
+                                        {searchTerm || selectedCategorySlug // Removed locationTerm
+                                            ? `No results for "${searchTerm || selectedCategorySlug}". Try different keywords or categories.`
                                             : "Currently no open positions match your search criteria. Please check back later."
                                         }
                                     </p>
-                                    {(searchTerm || locationTerm || selectedCategorySlug) && (
+                                    {(searchTerm || selectedCategorySlug) && ( // Removed locationTerm
                                         <Button
                                             onClick={clearAllFilters}
                                             variant="outline"
@@ -527,8 +500,7 @@ const Jobs = () => {
   );
 };
 
-export default Jobs;
-// import React, { useEffect, useState, useCallback, memo } from "react";
+export default Jobs;// import React, { useEffect, useState, useCallback, memo } from "react";
 // import { Link, useSearchParams } from "react-router-dom";
 // import { Briefcase, MapPin, Search } from "lucide-react";
 // import { motion, AnimatePresence } from "framer-motion";
