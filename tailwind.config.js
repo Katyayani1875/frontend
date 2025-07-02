@@ -67,7 +67,7 @@ export default {
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))'
         },
-        glass: 'rgba(255, 255, 255, 0.05)',
+        glass: 'rgba(255, 255, 255, 0.05)', // Keep for general glass effect, if used elsewhere
       },
       borderRadius: {
         lg: 'var(--radius)',
