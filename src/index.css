@@ -166,14 +166,3 @@ input, textarea, select {
   scrollbar-color: #8b5cf6 #334155; /* thumb color track color */
 }
 
-/* Base class for frosted glass effect */
-/* Add this if backdrop-filter is not automatically provided by your Tailwind setup or if you want a custom value */
-.frosted-glass {
-  background-color: rgba(255, 255, 255, 0.2); /* Slightly more opaque for visible effect */
-  backdrop-filter: blur(8px) saturate(180%); /* Stronger blur and saturation for premium feel */
-  -webkit-backdrop-filter: blur(8px) saturate(180%);
-}
-
-.dark .frosted-glass {
-  background-color: rgba(30, 41, 59, 0.4); /* bg-slate-800 with transparency */
-}
