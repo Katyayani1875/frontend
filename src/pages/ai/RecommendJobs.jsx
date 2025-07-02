@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { recommendJobs } from '../../api/aiApi';
@@ -6,9 +5,10 @@ import { Loader2, BrainCircuit, X, MapPin, ChevronRight, Plus, Sparkles, Zap, Li
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 
-// TagInput component remains largely the same, no changes needed for this fix.
+// TagInput component with improved UX
 const TagInput = ({ tags, setTags }) => {
     const [inputValue, setInputValue] = useState('');
+    const [isInputFocused, setIsInputFocused] = useState(false);
 
     const handleKeyDown = (e) => {
         if (['Enter', ','].includes(e.key) && inputValue.trim() !== '') {
@@ -26,7 +26,7 @@ const TagInput = ({ tags, setTags }) => {
     };
 
     return (
-        <div className="w-full bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl p-3 flex flex-wrap items-center gap-2 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all shadow-sm">
+        <div className="w-full bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-700 rounded-xl p-3 flex flex-wrap items-center gap-2 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all shadow-sm">
             <AnimatePresence>
                 {tags.map(tag => (
                     <motion.span
@@ -54,20 +54,27 @@ const TagInput = ({ tags, setTags }) => {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={tags.length === 0 ? "Type a skill and press Enter..." : ""}
+                onFocus={() => setIsInputFocused(true)}
+                onBlur={() => setIsInputFocused(false)}
+                placeholder={tags.length === 0 ? "Type a skill (e.g., Python, AWS) and press Enter or comma" : ""}
                 className="flex-grow p-2 bg-transparent text-slate-800 dark:text-slate-200 focus:outline-none placeholder-slate-400 dark:placeholder-slate-500 min-w-[150px]"
                 aria-label="Add skills"
             />
-            {tags.length === 0 && (
+            {tags.length === 0 && !isInputFocused && ( // Show plus icon only when input is empty and not focused
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
                     <Plus size={18} />
                 </div>
+            )}
+            {inputValue.trim() !== '' && isInputFocused && ( // Show instruction when typing
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs px-2 py-1 rounded-md bg-slate-50 dark:bg-slate-700 pointer-events-none">
+                    Press Enter/Comma to add
+                </span>
             )}
         </div>
     );
 };
 
-// JobCard component adapted for Job Roles
+// JobCard component (unchanged)
 const JobCard = ({ title, description, keySkills, industries }) => (
     <motion.div
         className="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl p-6 flex flex-col h-full shadow-md hover:shadow-xl hover:border-indigo-200 dark:hover:border-indigo-700 transition-all group relative overflow-hidden"
@@ -122,7 +129,7 @@ const JobCard = ({ title, description, keySkills, industries }) => (
 );
 
 
-// Skeleton loader for JobCard
+// Skeleton loader for JobCard (unchanged)
 const JobCardSkeleton = () => (
     <div className="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl p-6 flex flex-col h-full shadow-md animate-pulse">
         <div className="flex-grow">
@@ -151,7 +158,7 @@ const JobCardSkeleton = () => (
 
 const RecommendJobs = () => {
     const { user } = useAuth();
-    const [skills, setSkills] = useState(['React', 'JavaScript', 'Node.js', 'AWS']); // Pre-fill with some common skills
+    const [skills, setSkills] = useState(['React', 'JavaScript', 'Node.js', 'AWS', 'Java']); // Pre-fill with some common skills
     const [recommendations, setRecommendations] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -170,7 +177,7 @@ const RecommendJobs = () => {
             const response = await recommendJobs({ skills: skills.join(', ') });
             const parsedRecommendations = parseRecommendations(response.data.recommendations);
             if (parsedRecommendations.length === 0) {
-                setError("No specific job roles could be identified for the given skills. Please try different or more detailed skills.");
+                setError("No specific job roles could be identified for the given skills. Please try different or more detailed skills, or ensure the AI response format is correct.");
             }
             setRecommendations([{ title: "Recommended Job Roles", jobs: parsedRecommendations }]);
         } catch (err) {
@@ -185,6 +192,7 @@ const RecommendJobs = () => {
         if (!raw) return [];
 
         const roles = [];
+        // Ensure we split by 'ROLE_START' and then process each block, handling potential leading text
         const roleBlocks = raw.split('ROLE_START').filter(block => block.trim() !== '');
 
         roleBlocks.forEach(block => {
@@ -200,8 +208,8 @@ const RecommendJobs = () => {
             const keySkills = keySkillsMatch ? keySkillsMatch[1].split(',').map(s => s.trim()).filter(Boolean) : [];
             const industries = industriesMatch ? industriesMatch[1].split(',').map(s => s.trim()).filter(Boolean) : [];
 
-            // Only add if a title is found to ensure valid parsing
-            if (title !== "Untitled Role") {
+            // Only add if a valid title is found to ensure robust parsing
+            if (title && title !== "Untitled Role") {
                 roles.push({
                     title,
                     description,
@@ -217,7 +225,7 @@ const RecommendJobs = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-5xl mx-auto">
+            <div className="max-w-5xl mx-auto"> {/* Max-width added for better responsiveness on very large screens */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -257,7 +265,7 @@ const RecommendJobs = () => {
                                 <TagInput tags={skills} setTags={setSkills} />
                             </div>
                             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                                Add as many relevant skills as you can for better role suggestions
+                                Add as many relevant skills as you can for better role suggestions. Each skill must be entered as a separate tag.
                             </p>
                             {error && (
                                 <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
