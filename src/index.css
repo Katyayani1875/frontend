@@ -123,3 +123,44 @@ input, textarea, select {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Add this for custom scrollbar, if desired for the right panel */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px; /* width of the scrollbar */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #e2e8f0; /* bg-slate-200 */
+  border-radius: 10px;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-track {
+  background: #334155; /* bg-slate-700 */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #a78bfa; /* bg-purple-400 */
+  border-radius: 10px;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #8b5cf6; /* bg-purple-500 */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #8b5cf6; /* bg-purple-500 */
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #7c3aed; /* bg-purple-600 */
+}
+
+/* Optional: To make the scrollbar disappear when not scrolling, or for a more modern look */
+.custom-scrollbar {
+  scrollbar-width: thin; /* "auto" or "thin" */
+  scrollbar-color: #a78bfa #e2e8f0; /* thumb color track color */
+}
+
+.dark .custom-scrollbar {
+  scrollbar-color: #8b5cf6 #334155; /* thumb color track color */
+}

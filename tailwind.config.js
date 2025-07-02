@@ -8,9 +8,6 @@ export default {
   theme: {
     extend: {
        fontFamily: {
-        // We are no longer importing anything.
-        // We are providing a direct list of standard fallback fonts.
-        // This cannot fail.
         sans: [
           "Inter",
           "ui-sans-serif",
@@ -94,11 +91,29 @@ export default {
             boxShadow: '0 0 12px rgba(234, 179, 8, 0.6)',
           },
         },
+        // --- NEW: Blob Keyframes ---
+        blob: {
+          '0%': {
+            transform: 'translate(0px, 0px) scale(1)',
+          },
+          '33%': {
+            transform: 'translate(30px, -50px) scale(1.1)',
+          },
+          '66%': {
+            transform: 'translate(-20px, 20px) scale(0.9)',
+          },
+          '100%': {
+            transform: 'translate(0px, 0px) scale(1)',
+          },
+        },
       },
       animation: {
         fadeIn: 'fadeIn 0.5s ease-in-out',
         slideInUp: 'slideInUp 0.4s ease-in-out',
         glow: 'glow 2s ease-in-out infinite',
+        // --- NEW: Blob Animation ---
+        blob: 'blob 7s infinite ease-in-out',
+        'blob-delay-2000': 'blob 7s infinite ease-in-out 2s', // For staggered animation
       },
     },
   },
