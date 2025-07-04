@@ -1,37 +1,18 @@
-// src/pages/ai/GenerateCoverLetter.jsx
-
 import React, { useState } from 'react';
 import jsPDF from 'jspdf';
 import { generateCoverLetter } from '../../api/aiApi';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Sparkles, User, Briefcase, FileText, Download, Copy, RefreshCw, Check } from 'lucide-react';
+import { Loader2, Sparkles, User, Briefcase, FileText, Download, Copy, RefreshCw, Check, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { toast } from 'react-hot-toast';
 
 const STEPS = [
-    { id: 1, name: 'The Role', icon: <Briefcase/> },
-    { id: 2, name: 'About You', icon: <User/> },
-    { id: 3, name: 'Your Letter', icon: <FileText/> },
+    { id: 1, name: 'Job Details', icon: <Briefcase size={18} /> },
+    { id: 2, name: 'Your Profile', icon: <User size={18} /> },
+    { id: 3, name: 'Generated Letter', icon: <FileText size={18} /> },
 ];
-
-// Reusable Input with Label Component
-const LabeledInput = ({ label, name, value, onChange, placeholder, type = "text" }) => (
-    <div>
-        <label htmlFor={name} className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{label}</label>
-        <Input id={name} name={name} value={value} onChange={onChange} placeholder={placeholder} type={type} />
-    </div>
-);
-
-// Reusable Textarea with Label Component
-const LabeledTextarea = ({ label, name, value, onChange, placeholder, rows }) => (
-    <div>
-        <label htmlFor={name} className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{label}</label>
-        <Textarea id={name} name={name} value={value} onChange={onChange} placeholder={placeholder} rows={rows} />
-    </div>
-);
-
 
 const GenerateCoverLetter = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -43,10 +24,12 @@ const GenerateCoverLetter = () => {
       email: '',
       phone: '',
       address: '',
-      resumeText: '', // This will hold the key achievements/skills
+      resumeText: '',
+      platform: '',
   });
   const [coverLetter, setCoverLetter] = useState('');
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -54,22 +37,18 @@ const GenerateCoverLetter = () => {
   };
 
   const handleGenerate = async () => {
-    // Check for required fields from both steps 1 and 2
     if (!formData.jobTitle || !formData.companyName || !formData.resumeText || !formData.name) {
-      toast.error('Please fill in all required fields from previous steps.');
-      // Optionally, navigate back to the first step with missing info
-      if(!formData.jobTitle || !formData.companyName) setCurrentStep(1);
-      else setCurrentStep(2);
+      toast.error('Please fill in all required fields');
       return;
     }
+    
     setLoading(true);
-    setCurrentStep(3); // Move to the final step
     try {
       const response = await generateCoverLetter(formData);
       setCoverLetter(response.data.coverLetter);
+      setCurrentStep(3);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Error generating cover letter.');
-      setCurrentStep(2); // Go back to the form if there's an error
+      toast.error(err.response?.data?.message || 'Error generating cover letter');
     } finally {
       setLoading(false);
     }
@@ -77,30 +56,46 @@ const GenerateCoverLetter = () => {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(coverLetter);
+    setCopied(true);
     toast.success('Copied to clipboard!');
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleDownloadPdf = () => {
     const doc = new jsPDF();
+    doc.setFontSize(12);
     const splitText = doc.splitTextToSize(coverLetter, 180);
     doc.text(splitText, 15, 20);
-    doc.save(`CoverLetter_${formData.companyName}.pdf`);
+    doc.save(`${formData.name}_${formData.companyName}_CoverLetter.pdf`);
   };
 
   const handleReset = () => {
-    setFormData({ jobTitle: '', companyName: '', jobDescription: '', name: '', email: '', phone: '', address: '', resumeText: '' });
+    setFormData({ 
+      jobTitle: '', 
+      companyName: '', 
+      jobDescription: '', 
+      name: '', 
+      email: '', 
+      phone: '', 
+      address: '', 
+      resumeText: '',
+      platform: ''
+    });
     setCoverLetter('');
     setCurrentStep(1);
   };
-  
-  // Updated Live Preview to use all form fields
+
   const livePreviewText = `
 ${formData.name || '[Your Name]'}
 ${formData.address || '[Your Address]'}
 ${formData.phone || '[Your Phone]'}
 ${formData.email || '[Your Email]'}
 
-${new Date().toLocaleDateString() || '[Date]'}
+${new Date().toLocaleDateString('en-US', { 
+  year: 'numeric', 
+  month: 'long', 
+  day: 'numeric' 
+})}
 
 Hiring Manager
 ${formData.companyName || '[Company Name]'}
@@ -108,99 +103,328 @@ ${formData.companyName || '[Company Name]'}
 
 Dear Hiring Manager,
 
-I am writing to express my enthusiastic interest in the **${formData.jobTitle || '(Job Title)'}** position at **${formData.companyName || '(Company Name)'}**, which I discovered on [Platform]. Having followed ${formData.companyName}'s work, I am confident that my skills and experience align perfectly with this role.
+I am writing to express my enthusiastic interest in the ${formData.jobTitle || '[Job Title]'} position at ${formData.companyName || '[Company Name]'}, which I discovered on ${formData.platform || '[Platform]'}. 
 
-${formData.resumeText ? `My background includes achievements such as: **${formData.resumeText}**. This experience has equipped me with a strong foundation that I am eager to bring to your team.` : '[Your Key Achievements and Skills]'}
+${formData.resumeText ? `My background includes: ${formData.resumeText}` : '[Your key achievements and skills]'}
 
-Thank you for your time and consideration. I am excited about the possibility of contributing to ${formData.companyName}.
+I welcome the opportunity to discuss how my experience aligns with your needs. Thank you for your time and consideration.
 
 Sincerely,
 ${formData.name || '[Your Name]'}
-  `.trim();
+`.trim();
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
-                <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">AI Cover Letter Generator</h1>
-                <p className="mt-4 max-w-2xl mx-auto text-lg text-slate-600 dark:text-slate-400">Craft a professional cover letter in minutes. Let our AI help you make the best first impression.</p>
-            </motion.div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 rounded-full text-sm font-medium mb-4">
+            <Sparkles size={16} />
+            AI-Powered Tool
+          </div>
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">
+            AI Cover Letter Generator
+          </h1>
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            Craft a professional cover letter in minutes with our intelligent AI assistant
+          </p>
+        </motion.div>
 
-            <div className="max-w-4xl mx-auto bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8">
-                {/* Progress Bar */}
-                <div className="mb-8">
-                    <div className="flex justify-between items-center">
-                        {STEPS.map((step, i) => (
-                            <React.Fragment key={step.id}>
-                                <div className="flex flex-col items-center text-center w-20">
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${currentStep >= step.id ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-500'}`}>
-                                        {currentStep > step.id ? <Check/> : step.icon}
-                                    </div>
-                                    <p className={`mt-2 text-xs font-semibold truncate ${currentStep >= step.id ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500'}`}>{step.name}</p>
-                                </div>
-                                {i < STEPS.length - 1 && <div className={`flex-1 h-1 mx-4 rounded-full ${currentStep > i + 1 ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-700'}`}></div>}
-                            </React.Fragment>
-                        ))}
+        {/* Main Card */}
+        <div className="bg-white dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl overflow-hidden">
+          {/* Progress Steps */}
+          <div className="px-8 pt-8 pb-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex justify-between items-center">
+              {STEPS.map((step, index) => (
+                <React.Fragment key={step.id}>
+                  <div className="flex flex-col items-center">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
+                      currentStep >= step.id 
+                        ? 'bg-indigo-600 border-indigo-600 text-white' 
+                        : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-500'
+                    }`}>
+                      {currentStep > step.id ? <Check size={18} /> : step.icon}
                     </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 min-h-[450px]">
-                    {/* Left Side: Form */}
-                    <div className="md:pr-8 md:border-r md:border-slate-200 dark:md:border-slate-700">
-                        <AnimatePresence mode="wait">
-                            <motion.div key={currentStep} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
-                                {currentStep === 1 && (
-                                    <div className="space-y-6">
-                                        <h3 className="text-xl font-bold text-slate-800 dark:text-white">Tell us about the role</h3>
-                                        <LabeledInput label="Job Title" name="jobTitle" value={formData.jobTitle} onChange={handleChange} placeholder="e.g., Software Engineer"/>
-                                        <LabeledInput label="Company Name" name="companyName" value={formData.companyName} onChange={handleChange} placeholder="e.g., Google"/>
-                                        <LabeledTextarea label="Job Description (Optional)" name="jobDescription" value={formData.jobDescription} onChange={handleChange} placeholder="Paste job description for better results" rows={8}/>
-                                    </div>
-                                )}
-                                {currentStep === 2 && (
-                                    <div className="space-y-6">
-                                        <h3 className="text-xl font-bold text-slate-800 dark:text-white">Tell us about you</h3>
-                                        <LabeledInput label="Your Full Name" name="name" value={formData.name} onChange={handleChange} />
-                                        <LabeledInput label="Your Email" name="email" type="email" value={formData.email} onChange={handleChange} />
-                                        <LabeledInput label="Your Phone" name="phone" value={formData.phone} onChange={handleChange} />
-                                        <LabeledInput label="Your Address" name="address" value={formData.address} onChange={handleChange} />
-                                        <LabeledTextarea label="Key Achievements & Skills" name="resumeText" value={formData.resumeText} onChange={handleChange} placeholder="Highlight your most relevant experience for this role." rows={5}/>
-                                    </div>
-                                )}
-                                {currentStep === 3 && (
-                                    <div className="flex flex-col items-center justify-center h-full text-center">
-                                       {loading ? (
-                                           <><Loader2 size={48} className="text-indigo-500 animate-spin" /><h3 className="text-xl font-bold mt-4 text-slate-800 dark:text-white">Crafting your letter...</h3><p className="text-slate-500">Our AI is working its magic!</p></>
-                                       ) : (
-                                           <><Check size={48} className="text-green-500" /><h3 className="text-xl font-bold mt-4 text-slate-800 dark:text-white">Your letter is ready!</h3><p className="text-slate-500">Copy, download, or edit it on the right.</p><div className="mt-6 flex flex-wrap justify-center gap-3"><Button onClick={handleCopy} variant="outline"><Copy className="w-4 h-4 mr-2"/> Copy</Button><Button onClick={handleDownloadPdf} variant="outline"><Download className="w-4 h-4 mr-2"/> PDF</Button><Button onClick={handleReset} variant="ghost"><RefreshCw className="w-4 h-4 mr-2"/> Start Over</Button></div></>
-                                       )}
-                                    </div>
-                                )}
-                            </motion.div>
-                        </AnimatePresence>
-                    </div>
-
-                    {/* Right Side: Live Preview / Result */}
-                    <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-6 font-mono text-xs text-slate-600 dark:text-slate-400 leading-relaxed overflow-auto relative hidden md:block">
-                        <AnimatePresence>
-                            <motion.pre key={currentStep === 3 && !loading ? 'result' : 'preview'} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="whitespace-pre-wrap">
-                                {currentStep === 3 && !loading ? coverLetter : livePreviewText}
-                            </motion.pre>
-                        </AnimatePresence>
-                        <div className="absolute top-2 right-2 bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded">LIVE PREVIEW</div>
-                    </div>
-                </div>
-
-                {/* Navigation Buttons */}
-                <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
-                    <div>{currentStep > 1 && currentStep < 3 && (<Button variant="ghost" onClick={() => setCurrentStep(currentStep - 1)}>Back</Button>)}</div>
-                    <div>
-                        {currentStep === 1 && (<Button onClick={() => setCurrentStep(2)}>Next: About You</Button>)}
-                        {currentStep === 2 && (<Button onClick={handleGenerate} disabled={loading}><Sparkles className="w-4 h-4 mr-2"/> Generate Letter</Button>)}
-                    </div>
-                </div>
+                    <span className={`mt-2 text-sm font-medium ${
+                      currentStep >= step.id 
+                        ? 'text-indigo-600 dark:text-indigo-400' 
+                        : 'text-gray-500 dark:text-gray-400'
+                    }`}>
+                      {step.name}
+                    </span>
+                  </div>
+                  {index < STEPS.length - 1 && (
+                    <div className={`flex-1 h-1 mx-2 ${
+                      currentStep > step.id 
+                        ? 'bg-indigo-600' 
+                        : 'bg-gray-200 dark:bg-gray-700'
+                    }`}></div>
+                  )}
+                </React.Fragment>
+              ))}
             </div>
+          </div>
+
+          {/* Content Area */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[500px]">
+            {/* Form Section */}
+            <div className="p-8 border-r border-gray-200 dark:border-gray-700">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentStep}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.3 }}
+                  className="h-full"
+                >
+                  {currentStep === 1 && (
+                    <div className="space-y-6">
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        Tell us about the role
+                      </h2>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Job Title*
+                        </label>
+                        <Input
+                          name="jobTitle"
+                          value={formData.jobTitle}
+                          onChange={handleChange}
+                          placeholder="e.g. Senior Product Designer"
+                          className="w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Company Name*
+                        </label>
+                        <Input
+                          name="companyName"
+                          value={formData.companyName}
+                          onChange={handleChange}
+                          placeholder="e.g. Google"
+                          className="w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Where did you find this job?
+                        </label>
+                        <Input
+                          name="platform"
+                          value={formData.platform}
+                          onChange={handleChange}
+                          placeholder="e.g. LinkedIn, Company Website"
+                          className="w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Job Description (Optional)
+                        </label>
+                        <Textarea
+                          name="jobDescription"
+                          value={formData.jobDescription}
+                          onChange={handleChange}
+                          placeholder="Paste the job description for better results"
+                          rows={6}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {currentStep === 2 && (
+                    <div className="space-y-6">
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        Tell us about you
+                      </h2>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Full Name*
+                          </label>
+                          <Input
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            className="w-full"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Email*
+                          </label>
+                          <Input
+                            name="email"
+                            type="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            className="w-full"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Phone
+                          </label>
+                          <Input
+                            name="phone"
+                            value={formData.phone}
+                            onChange={handleChange}
+                            className="w-full"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Address
+                          </label>
+                          <Input
+                            name="address"
+                            value={formData.address}
+                            onChange={handleChange}
+                            className="w-full"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Key Achievements & Skills*
+                        </label>
+                        <Textarea
+                          name="resumeText"
+                          value={formData.resumeText}
+                          onChange={handleChange}
+                          placeholder="Describe your most relevant experience for this role"
+                          rows={6}
+                          className="w-full"
+                        />
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                          Highlight 2-3 key accomplishments that align with this job
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {currentStep === 3 && (
+                    <div className="h-full flex flex-col items-center justify-center text-center">
+                      {loading ? (
+                        <>
+                          <Loader2 className="h-12 w-12 text-indigo-500 animate-spin mb-4" />
+                          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                            Crafting your perfect cover letter
+                          </h3>
+                          <p className="text-gray-600 dark:text-gray-400">
+                            Our AI is analyzing your profile and the job requirements...
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center text-green-600 dark:text-green-400 mb-4">
+                            <Check className="h-8 w-8" />
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                            Your cover letter is ready!
+                          </h3>
+                          <p className="text-gray-600 dark:text-gray-400 mb-6">
+                            Review it on the right and download or copy it.
+                          </p>
+                          <div className="flex gap-3">
+                            <Button 
+                              onClick={handleCopy}
+                              variant="outline"
+                              className="gap-2"
+                            >
+                              <Copy size={16} />
+                              {copied ? 'Copied!' : 'Copy'}
+                            </Button>
+                            <Button 
+                              onClick={handleDownloadPdf}
+                              className="gap-2"
+                            >
+                              <Download size={16} />
+                              Download PDF
+                            </Button>
+                          </div>
+                          <Button 
+                            onClick={handleReset}
+                            variant="ghost"
+                            className="mt-4 gap-2"
+                          >
+                            <RefreshCw size={16} />
+                            Create Another
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Preview Section */}
+            <div className="hidden lg:block bg-gray-50 dark:bg-gray-700/20 p-8 overflow-auto">
+              <div className="sticky top-0 bg-gray-50 dark:bg-gray-700/20 pb-4 mb-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Live Preview
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {currentStep === 3 && !loading ? 'Final version' : 'Preview based on your inputs'}
+                </p>
+              </div>
+              <div className="prose dark:prose-invert max-w-none">
+                <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 dark:text-gray-200">
+                  {currentStep === 3 && !loading ? coverLetter : livePreviewText}
+                </pre>
+              </div>
+            </div>
+          </div>
+
+          {/* Navigation */}
+          <div className="px-8 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-between">
+            <div>
+              {currentStep > 1 && currentStep < 3 && (
+                <Button 
+                  onClick={() => setCurrentStep(currentStep - 1)}
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <ChevronLeft size={16} />
+                  Back
+                </Button>
+              )}
+            </div>
+            <div>
+              {currentStep === 1 && (
+                <Button 
+                  onClick={() => setCurrentStep(2)}
+                  className="gap-2"
+                >
+                  Continue
+                  <ChevronRight size={16} />
+                </Button>
+              )}
+              {currentStep === 2 && (
+                <Button 
+                  onClick={handleGenerate}
+                  disabled={loading}
+                  className="gap-2"
+                >
+                  <Sparkles size={16} />
+                  Generate Cover Letter
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
+      </div>
     </div>
   );
 };

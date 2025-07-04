@@ -1,7 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { chatAssistant } from "../../api/aiApi";
-import { FiSend, FiUser, FiMessageSquare, FiLoader } from 'react-icons/fi';
+import { FiSend, FiUser } from 'react-icons/fi';
 import { RiRobot2Line } from 'react-icons/ri';
+import { IoSend } from 'react-icons/io5';
+import { BsStars, BsLightningChargeFill } from 'react-icons/bs';
+import { TbBrandOpenai } from 'react-icons/tb';
 
 const ChatAssistant = () => {
   const [input, setInput] = useState('');
@@ -43,15 +46,31 @@ const ChatAssistant = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-indigo-900 to-purple-800">
-      {/* Header */}
-      <header className="bg-white/10 backdrop-blur-md py-4 px-6 border-b border-white/20">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-white flex items-center">
-            <RiRobot2Line className="mr-2" />
-            JobHunt AI Assistant
-          </h1>
-          <div className="text-sm text-white/80">Powered by GPT-4</div>
+    <div className="flex flex-col h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+      {/* Premium Header */}
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700/50">
+        <div className="max-w-6xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 text-white">
+                <RiRobot2Line className="text-xl" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">JobHunt AI Assistant</h1>
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs font-medium px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 rounded-full">
+                    <TbBrandOpenai className="inline mr-1" />
+                    GPT-4 Turbo
+                  </span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Real-time career guidance</span>
+                </div>
+              </div>
+            </div>
+            <div className="hidden md:flex items-center space-x-2">
+              <BsStars className="text-yellow-500" />
+              <span className="text-sm text-gray-600 dark:text-gray-300">Premium AI</span>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -59,55 +78,83 @@ const ChatAssistant = () => {
       <div className="flex-1 overflow-hidden py-6 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto h-full flex flex-col">
           {/* Chat Messages */}
-          <div className="flex-1 overflow-y-auto rounded-t-xl bg-white/5 backdrop-blur-md p-4 border border-white/10">
+          <div className="flex-1 overflow-y-auto rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700/50">
             {messages.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center text-white/70">
-                <FiMessageSquare className="text-4xl mb-4" />
-                <h3 className="text-xl font-medium mb-2">JobHunt AI Assistant</h3>
-                <p className="max-w-md">
-                  Ask me anything about job opportunities, resume tips, interview preparation, 
-                  or career advice. I'm here to help!
+              <div className="h-full flex flex-col items-center justify-center text-center p-8">
+                <div className="mb-6 p-4 rounded-full bg-indigo-100 dark:bg-indigo-900/20 text-indigo-500 dark:text-indigo-400">
+                  <RiRobot2Line className="text-3xl" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">JobHunt AI Assistant</h3>
+                <p className="text-gray-600 dark:text-gray-400 max-w-md mb-6">
+                  I can help with job searches, resume optimization, interview prep, and career advice. 
+                  How can I assist you today?
                 </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-md">
+                  {[
+                    "Find software engineer jobs",
+                    "Improve my resume for tech roles",
+                    "Common interview questions for marketing",
+                    "Career change advice"
+                  ].map((suggestion, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setInput(suggestion)}
+                      className="text-sm text-left p-3 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 transition-colors"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-6 p-6">
                 {messages.map((message, index) => (
                   <div 
                     key={index} 
                     className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div 
-                      className={`max-w-3xl rounded-lg px-4 py-3 ${message.sender === 'user' 
-                        ? 'bg-indigo-600 text-white rounded-br-none' 
+                      className={`max-w-3xl rounded-2xl px-5 py-4 ${message.sender === 'user' 
+                        ? 'bg-indigo-600 text-white rounded-br-none shadow-md'
                         : message.isError 
-                          ? 'bg-red-500/20 text-red-200 rounded-bl-none' 
-                          : 'bg-white/10 text-white rounded-bl-none'}`}
+                          ? 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200 rounded-bl-none'
+                          : 'bg-gray-100 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 rounded-bl-none shadow-sm'}`}
                     >
-                      <div className="flex items-center mb-1">
+                      <div className="flex items-center mb-2">
                         {message.sender === 'user' ? (
-                          <FiUser className="mr-2" />
+                          <div className="w-8 h-8 rounded-full bg-indigo-700 flex items-center justify-center mr-3">
+                            <FiUser className="text-white" />
+                          </div>
                         ) : (
-                          <RiRobot2Line className="mr-2" />
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
+                            message.isError 
+                              ? 'bg-red-200 dark:bg-red-800 text-red-600 dark:text-red-300'
+                              : 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                          }`}>
+                            <RiRobot2Line />
+                          </div>
                         )}
                         <span className="font-medium">
                           {message.sender === 'user' ? 'You' : 'JobHunt AI'}
                         </span>
                       </div>
-                      <div className="whitespace-pre-wrap">{message.text}</div>
+                      <div className="whitespace-pre-wrap ml-11">{message.text}</div>
                     </div>
                   </div>
                 ))}
                 {loading && (
                   <div className="flex justify-start">
-                    <div className="bg-white/10 text-white rounded-lg rounded-bl-none px-4 py-3 max-w-xs">
-                      <div className="flex items-center">
-                        <RiRobot2Line className="mr-2" />
+                    <div className="bg-gray-100 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 rounded-2xl rounded-bl-none px-5 py-4 max-w-md shadow-sm">
+                      <div className="flex items-center mb-2">
+                        <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mr-3">
+                          <RiRobot2Line />
+                        </div>
                         <span className="font-medium">JobHunt AI</span>
                       </div>
-                      <div className="flex space-x-2 pt-2">
-                        <div className="w-2 h-2 rounded-full bg-white/50 animate-pulse"></div>
-                        <div className="w-2 h-2 rounded-full bg-white/50 animate-pulse delay-100"></div>
-                        <div className="w-2 h-2 rounded-full bg-white/50 animate-pulse delay-200"></div>
+                      <div className="flex space-x-2 pt-1 ml-11">
+                        <div className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-pulse"></div>
+                        <div className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-pulse delay-100"></div>
+                        <div className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-pulse delay-200"></div>
                       </div>
                     </div>
                   </div>
@@ -117,32 +164,67 @@ const ChatAssistant = () => {
             )}
           </div>
 
-          {/* Input Area */}
-          <form onSubmit={handleSubmit} className="mt-2">
+          {/* Premium Input Area */}
+          <form onSubmit={handleSubmit} className="mt-6">
             <div className="relative">
+              <div className="absolute -top-3 left-4 px-2 bg-white dark:bg-gray-800 text-xs text-indigo-600 dark:text-indigo-400 font-medium rounded-full">
+                Ask JobHunt AI
+              </div>
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                className="w-full bg-white/5 backdrop-blur-md border border-white/20 rounded-b-xl px-4 py-3 pr-12 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+                className="w-full bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-xl px-5 py-4 pr-14 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900/30 shadow-sm"
                 placeholder="Ask about jobs, resumes, interviews..."
                 disabled={loading}
               />
               <button
                 type="submit"
                 disabled={loading || !input.trim()}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all ${
+                  loading 
+                    ? 'text-gray-400 cursor-not-allowed' 
+                    : input.trim() 
+                      ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md'
+                      : 'text-gray-400 cursor-not-allowed'
+                }`}
               >
-                {loading ? <FiLoader className="animate-spin" /> : <FiSend />}
+                {loading ? (
+                  <svg className="animate-spin h-5 w-5 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <IoSend className="text-lg" />
+                )}
               </button>
+            </div>
+            <div className="mt-2 flex justify-between items-center px-2">
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {input.length > 0 ? `${input.length}/500` : 'Shift+Enter for new line'}
+              </span>
+              <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                <BsLightningChargeFill className="mr-1 text-yellow-500" />
+                Powered by GPT-4 Turbo
+              </div>
             </div>
           </form>
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="bg-black/20 text-white/60 text-center py-3 text-xs">
-        JobHunt AI Assistant may produce inaccurate information. Always verify important details.
+      {/* Premium Footer */}
+      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700/50 py-3 px-6">
+        <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center text-center md:text-left">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 md:mb-0">
+            JobHunt AI may produce inaccurate information. Always verify important details.
+          </p>
+          <div className="flex items-center space-x-4">
+            <span className="text-xs text-gray-500 dark:text-gray-400">v2.4.1</span>
+            <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 rounded-full">
+              System Operational
+            </span>
+          </div>
+        </div>
       </footer>
     </div>
   );
