@@ -88,17 +88,16 @@ function getAuthHeaders() {
   };
 }
 
-// --- THIS IS THE PRIMARY FUNCTION FOR THE NEW WORKFLOW ---
 /**
- * Analyzes a resume by uploading the file directly to the backend.
- * @param {FormData} formData - The FormData object containing the resume file.
- * @returns {Promise} Axios response promise.
+ * Analyze resume content
+ * @param {Object} data - Resume data
+ * @returns {Promise} Axios response promise
  */
 export const analyzeUploadedResumeApi = (formData) => {
+  // When sending FormData with a file, axios automatically sets the correct
+  // 'Content-Type': 'multipart/form-data' header. We only need to add our auth header.
   return axios.post(`${API_URL}/analyze-resume`, formData, getAuthHeaders());
 };
-
-
 // --- THIS IS THE PLACEHOLDER FUNCTION TO FIX THE BUILD ERROR ---
 /**
  * [DEPRECATED] Placeholder function to prevent build errors from legacy components.
