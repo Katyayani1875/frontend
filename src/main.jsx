@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
-import "./i18n"; // Import i18n instance before rendering App
+// import "./i18n"; // Import i18n instance before rendering App
 import { AuthProvider } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext"; // make sure this exists
 import 'react-toastify/dist/ReactToastify.css';
