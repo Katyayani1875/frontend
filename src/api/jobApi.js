@@ -116,21 +116,21 @@ const JobService = {
   // Bookmark Operations
   // =====================
   
-  bookmarks: {
-    /**
-     * Get all bookmarked jobs
-     * @returns {Promise<Array>} - Array of bookmarked jobs
-     */
+ bookmarks: {
     fetchAll: async () => {
       try {
         const { data } = await axiosInstance.get('/bookmarks');
-        return data?.jobs || [];
+        
+        // --- THIS IS THE FIX ---
+        // The backend sends the array directly, so just return it.
+        return data || []; 
+        // --- END OF THE FIX ---
+
       } catch (error) {
         console.error('[JobService] Error fetching bookmarks:', error);
         return [];
       }
     },
-
     /**
      * Add job to bookmarks
      * @param {String} jobId - Job ID to bookmark
